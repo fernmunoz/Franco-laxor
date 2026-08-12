@@ -323,6 +323,32 @@
     var isAnimating = false;
     var animTimer = null;
 
+    // Frågor med facit (flerval, sortera) ska visa rätt/fel innan man går
+    // vidare, annars missar man rättningen helt.
+    function requiresAnswer(card) {
+      return card && (card.type === "choice" || card.type === "classify");
+    }
+    function isAnswered(card) {
+      return !!getPath(state, card.key);
+    }
+
+    function nudge() {
+      cardEl.style.opacity = "1";
+      if (reduceMotion) {
+        cardEl.style.transition = "none";
+        cardEl.style.transform = "translateX(0) rotate(0deg)";
+        return;
+      }
+      cardEl.style.transition = "transform 0.09s ease";
+      cardEl.style.transform = "translateX(-10px) rotate(-2deg)";
+      setTimeout(function () {
+        cardEl.style.transform = "translateX(8px) rotate(2deg)";
+        setTimeout(function () {
+          cardEl.style.transform = "translateX(0) rotate(0deg)";
+        }, 90);
+      }, 90);
+    }
+
     function showCard(index, opts) {
       index = Math.max(0, Math.min(TOTAL - 1, index));
       opts = opts || {};
@@ -334,11 +360,12 @@
         bindCard(index);
         state.currentIndex = index;
         persist();
+        var blocked = requiresAnswer(CARDS[index]) && !isAnswered(CARDS[index]);
         progressFill.style.width = ((index + 1) / TOTAL) * 100 + "%";
         progressLabel.textContent = "Steg " + (index + 1) + " av " + TOTAL;
         prevBtn.disabled = index === 0;
-        nextBtn.disabled = index === TOTAL - 1;
-        navHint.textContent = index === TOTAL - 1 ? "Klart!" : "Svep för att byta fråga";
+        nextBtn.disabled = index === TOTAL - 1 || blocked;
+        navHint.textContent = index === TOTAL - 1 ? "Klart!" : (blocked ? "Välj ett svar för att gå vidare" : "Svep för att byta fråga");
       }
 
       if (animTimer) { clearTimeout(animTimer); animTimer = null; }
@@ -370,7 +397,12 @@
       }, 200);
     }
 
-    function goNext() { if (state.currentIndex < TOTAL - 1) showCard(state.currentIndex + 1, { direction: -1 }); }
+    function goNext() {
+      if (state.currentIndex >= TOTAL - 1) return;
+      var current = CARDS[state.currentIndex];
+      if (requiresAnswer(current) && !isAnswered(current)) { nudge(); return; }
+      showCard(state.currentIndex + 1, { direction: -1 });
+    }
     function goPrev() { if (state.currentIndex > 0) showCard(state.currentIndex - 1, { direction: 1 }); }
 
     prevBtn.addEventListener("click", goPrev);
@@ -411,10 +443,14 @@
       dragging = false;
       cardEl.classList.remove("dragging");
       if (horizontal) {
-        if (dx <= -SWIPE_THRESHOLD && state.currentIndex < TOTAL - 1) {
+        var current = CARDS[state.currentIndex];
+        var blockedForward = requiresAnswer(current) && !isAnswered(current);
+        if (dx <= -SWIPE_THRESHOLD && state.currentIndex < TOTAL - 1 && !blockedForward) {
           showCard(state.currentIndex + 1, { direction: -1 });
         } else if (dx >= SWIPE_THRESHOLD && state.currentIndex > 0) {
           showCard(state.currentIndex - 1, { direction: 1 });
+        } else if (dx <= -SWIPE_THRESHOLD && blockedForward) {
+          nudge();
         } else {
           cardEl.style.transition = "transform 0.25s ease, opacity 0.25s ease";
           cardEl.style.transform = "translateX(0) rotate(0deg)";
