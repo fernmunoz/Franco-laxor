@@ -210,6 +210,11 @@ body.app-shell { overflow: hidden; height: 100dvh; display: flex; flex-direction
   font-family: inherit; color: var(--ink);
 }
 
+.wrong-recap { background: var(--coral-soft); border: 1px solid var(--coral); border-radius: 12px; padding: 0.8rem 1rem; }
+.wrong-recap-title { margin: 0 0 0.4rem; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--coral); }
+.wrong-recap-list { margin: 0; padding-left: 1.1rem; font-size: 0.85rem; color: var(--ink); display: flex; flex-direction: column; gap: 0.35rem; }
+.wrong-recap-ok { margin: 0; font-size: 0.9rem; color: var(--sea); font-weight: 600; }
+
 .nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 1.4rem; padding: 0.6rem 1.1rem max(0.8rem, env(safe-area-inset-bottom)); }
 .nav-btn { width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--paper-card); color: var(--navy); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .nav-btn:disabled { opacity: 0.35; cursor: default; }

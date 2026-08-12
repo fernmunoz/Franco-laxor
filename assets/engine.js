@@ -42,8 +42,11 @@
   }
 
   function initHomework(config) {
-    var CARDS = config.cards || [];
-    var TOTAL = CARDS.length;
+    var HOME_CARDS = config.cards || [];
+    var HOME_TOTAL = HOME_CARDS.length;
+    var CARDS = HOME_CARDS;
+    var TOTAL = HOME_TOTAL;
+    var inRetry = false;
     var STORAGE_KEY = config.storageKey || ("laxa-" + (config.title || "okand"));
     var mount = typeof config.mount === "string" ? document.querySelector(config.mount) : (config.mount || document.body);
 
@@ -60,7 +63,13 @@
     if (!state.name) state.name = config.studentName || DEFAULT_STUDENT_NAME;
     if (!state.date) state.date = todayStr();
 
+    // homeState pekar alltid på den riktiga läxans svar. En repetitionsrunda
+    // (bara frågorna man svarade fel på) kör på en egen tillfällig state och
+    // ska aldrig skriva över den riktiga, därav inRetry-spärren i persist().
+    var homeState = state;
+
     function persist() {
+      if (inRetry) return;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         var reg = {};
@@ -209,19 +218,35 @@
             items
           );
         }
-        case "summary":
+        case "summary": {
+          var wrongCards = computeWrongCards(CARDS, state);
+          var recapHtml = "";
+          if (wrongCards.length > 0) {
+            recapHtml =
+              '<div class="wrong-recap">' +
+              '<p class="wrong-recap-title">Att öva mer på (' + wrongCards.length + ")</p>" +
+              '<ul class="wrong-recap-list">' +
+              wrongCards.map(function (c) { return "<li>" + esc(wrongLine(c)) + "</li>"; }).join("") +
+              "</ul></div>";
+          } else if (card.retryRound) {
+            recapHtml = '<p class="wrong-recap-ok">Snyggt, du hade rätt på allt i den här rundan! 🎉</p>';
+          }
+          var actionLabel = wrongCards.length > 0
+            ? "Öva på de " + wrongCards.length + " du hade fel på"
+            : (card.retryRound ? "Tillbaka till läxan" : "Börja om från början");
           return (
             '<div class="eyebrow">' + esc(card.eyebrow || "Klart!") + "</div>" +
             '<h2 class="story-title" style="font-size:1.4rem">' + esc(card.title || "Bra jobbat!") + "</h2>" +
             (card.lead ? '<p class="lead">' + esc(card.lead) + "</p>" : "") +
+            recapHtml +
             '<div class="summary-actions">' +
-            '<button type="button" class="btn" id="showSummaryBtn">Visa alla mina svar</button>' +
-            '<button type="button" class="btn secondary" id="printBtn">Skriv ut</button>' +
-            '<button type="button" class="btn danger" id="resetBtn">Börja om</button>' +
+            (card.buildSummary ? '<button type="button" class="btn" id="showSummaryBtn">Visa alla mina svar</button><button type="button" class="btn secondary" id="printBtn">Skriv ut</button>' : "") +
+            '<button type="button" class="btn danger" id="actionBtn">' + esc(actionLabel) + "</button>" +
             "</div>" +
-            '<textarea class="summary-box" id="summaryBox" style="display:none" readonly rows="14"></textarea>' +
+            (card.buildSummary ? '<textarea class="summary-box" id="summaryBox" style="display:none" readonly rows="14"></textarea>' : "") +
             (config.backHref ? '<a class="btn secondary" style="text-align:center;text-decoration:none;margin-top:0.3rem" href="' + esc(config.backHref) + '">Till läxlistan</a>' : "")
           );
+        }
         default:
           return "";
       }
@@ -297,22 +322,34 @@
       });
 
       if (card.type === "summary") {
-        var showBtn = document.getElementById("showSummaryBtn");
-        var box = document.getElementById("summaryBox");
-        showBtn.addEventListener("click", function () {
-          box.value = card.buildSummary ? card.buildSummary(state) : "";
-          box.style.display = box.style.display === "none" ? "block" : "none";
-          if (box.style.display === "block") { box.focus(); box.select(); }
-        });
-        document.getElementById("printBtn").addEventListener("click", function () {
-          box.value = card.buildSummary ? card.buildSummary(state) : "";
-          box.style.display = "block";
-          global.print();
-        });
-        document.getElementById("resetBtn").addEventListener("click", function () {
-          if (confirm("Vill du börja om från början? Alla svar rensas.")) {
+        if (card.buildSummary) {
+          var showBtn = document.getElementById("showSummaryBtn");
+          var box = document.getElementById("summaryBox");
+          showBtn.addEventListener("click", function () {
+            box.value = card.buildSummary(state);
+            box.style.display = box.style.display === "none" ? "block" : "none";
+            if (box.style.display === "block") { box.focus(); box.select(); }
+          });
+          document.getElementById("printBtn").addEventListener("click", function () {
+            box.value = card.buildSummary(state);
+            box.style.display = "block";
+            global.print();
+          });
+        }
+
+        var wrongNow = computeWrongCards(CARDS, state);
+        document.getElementById("actionBtn").addEventListener("click", function () {
+          if (wrongNow.length > 0) {
+            enterRetryRound(wrongNow);
+          } else if (card.retryRound) {
+            returnHome();
+          } else if (confirm("Vill du börja om från början? Alla svar rensas.")) {
             try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            CARDS = HOME_CARDS;
+            TOTAL = HOME_TOTAL;
+            inRetry = false;
             state = { currentIndex: 0 };
+            homeState = state;
             showCard(0, { instant: true });
           }
         });
@@ -330,6 +367,52 @@
     }
     function isAnswered(card) {
       return !!getPath(state, card.key);
+    }
+
+    // Alla flervals-/sorteringskort är garanterat besvarade när man når
+    // summeringen (goNext/svep tillåter inte att man hoppar över dem), så
+    // det räcker att jämföra svaret mot facit.
+    function computeWrongCards(cardsArr, st) {
+      return cardsArr.filter(function (c) {
+        return requiresAnswer(c) && getPath(st, c.key) !== c.correct;
+      });
+    }
+
+    function wrongLine(card) {
+      var val = getPath(state, card.key);
+      if (card.type === "classify") {
+        var tn = card.tagNames || {};
+        return (card.subject || "") + " — du svarade " + (tn[val] || val) + ", rätt är " + (tn[card.correct] || card.correct);
+      }
+      return (card.prompt || "") + " — du svarade " + val + ", rätt svar är " + card.correct;
+    }
+
+    function enterRetryRound(wrongCards) {
+      var cloned = wrongCards.map(function (c, i) {
+        var clone = Object.assign({}, c);
+        clone.eyebrow = "Repetition · " + (i + 1) + " av " + wrongCards.length;
+        return clone;
+      });
+      cloned.push({
+        type: "summary",
+        eyebrow: "Repetition klar",
+        title: "Bra jobbat med repetitionen!",
+        lead: "Här är läget efter den här rundan.",
+        retryRound: true
+      });
+      CARDS = cloned;
+      TOTAL = CARDS.length;
+      inRetry = true;
+      state = { currentIndex: 0 };
+      showCard(0, { instant: true });
+    }
+
+    function returnHome() {
+      CARDS = HOME_CARDS;
+      TOTAL = HOME_TOTAL;
+      inRetry = false;
+      state = homeState;
+      showCard(HOME_TOTAL - 1, { instant: true });
     }
 
     function nudge() {

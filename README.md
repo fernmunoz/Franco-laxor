@@ -15,6 +15,12 @@ och varje läxa ligger som en egen fil i `laxor/`.
   han kommit på var och en (läses från `localStorage`).
 - Namn (Franco) och dagens datum fylls i automatiskt av motorn, ingen
   startsida med fält behövs, första kortet är direkt första frågan/texten.
+- På flervals-/sorteringsfrågor (`choice`, `classify`) måste man välja ett
+  svar innan man kan gå vidare, så rättningen alltid hinner synas.
+- Sista kortet visar vilka frågor man svarade fel på och en knapp för att
+  öva på just dem i en ny liten runda (fungerar flera gånger på rad tills
+  allt sitter). Den ursprungliga läxan och dess svar ändras inte av det,
+  det är bara en extra övningsrunda ovanpå.
 
 ## Lägga till en ny läxa
 
