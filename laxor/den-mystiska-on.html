@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<title>Den mystiska ön – Svenskaläxa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="stylesheet" href="../assets/engine.css" />
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/engine.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var OPEN_QUESTIONS = [
+    "Varför vaknade Leo tidigt?",
+    "Vad hade Leo och hans pappa med sig i båten?",
+    "Vad hittade Leo under granen?",
+    "Vilka tre saker låg i asken?",
+    "Vad stod det på papperslappen?",
+    "Vad tror DU att nyckeln går till?"
+  ];
+
+  var WORDS = ["morgon", "fönster", "fiskespö", "försiktigt", "fotografi", "nyckel"];
+
+  var SPELL_CHOICES = [
+    { options: ["nyckel", "nykel"], correct: "nyckel" },
+    { options: ["försiktigt", "försicktigt"], correct: "försiktigt" },
+    { options: ["fönster", "fönnster"], correct: "fönster" },
+    { options: ["gammal", "gamal"], correct: "gammal" },
+    { options: ["plötsligt", "plötslit"], correct: "plötsligt" }
+  ];
+
+  var CLASSIFY = [
+    { word: "båt", correct: "S" },
+    { word: "springa", correct: "V" },
+    { word: "gammal", correct: "A" },
+    { word: "nyckel", correct: "S" },
+    { word: "fiska", correct: "V" },
+    { word: "mystisk", correct: "A" },
+    { word: "ö", correct: "S" },
+    { word: "öppna", correct: "V" }
+  ];
+
+  var CHECKLIST = [
+    "Jag börjar meningarna med stor bokstav.",
+    "Jag har punkt, frågetecken eller utropstecken efter meningarna.",
+    "Jag har försökt stava orden rätt.",
+    "Jag har läst igenom min text en gång."
+  ];
+
+  var TAG_NAMES = { S: "substantiv", V: "verb", A: "adjektiv" };
+
+  var STORY_HTML =
+    "<p>På lördagsmorgonen vaknade Leo tidigt. Solen lyste in genom fönstret och han kunde höra måsarna utanför. Hans pappa hade lovat att de skulle åka ut med båten och fiska.</p>" +
+    "<p>De packade matsäck, flytvästar och fiskespön och gick ner till bryggan. Vattnet låg nästan helt stilla.</p>" +
+    "<p>Efter en stund ute på sjön fick Leo syn på en liten ö.</p>" +
+    "<p>– Har vi varit där någon gång? frågade han.</p>" +
+    "<p>Pappa skakade på huvudet.</p>" +
+    "<p>– Nej, faktiskt inte.</p>" +
+    "<p>De styrde båten mot ön och gick i land. Där fanns höga träd, stora stenar och en smal stig som ledde in mellan buskarna.</p>" +
+    "<p>Leo följde stigen. Plötsligt såg han något blänka under en gammal gran.</p>" +
+    "<p>Det var en liten metallask.</p>" +
+    "<p>– Pappa! Kom och titta!</p>" +
+    "<p>Leo öppnade försiktigt asken. Inuti låg ett gammalt fotografi, en nyckel och en hopvikt papperslapp.</p>" +
+    "<p>På lappen stod bara fyra ord: <em>”Nyckeln passar vid vattnet.”</em></p>" +
+    "<p>Leo tittade på sin pappa. – Vad tror du att det betyder?</p>";
+
+  var cards = [];
+
+  cards.push({
+    type: "intro",
+    eyebrow: "Start",
+    title: "Den mystiska ön",
+    lead: "Svara på frågorna genom att svepa åt vänster. Dina svar sparas automatiskt.",
+    fields: [
+      { key: "name", label: "Namn", placeholder: "Skriv ditt namn" },
+      { key: "date", label: "Datum", placeholder: "åååå-mm-dd" }
+    ],
+    hint: "Svep vänster för att börja läsa texten →"
+  });
+
+  cards.push({
+    type: "read",
+    eyebrow: "1 · Läs texten",
+    title: "Den mystiska ön",
+    html: STORY_HTML,
+    hint: "Läst klart? Svep vidare till frågorna."
+  });
+
+  OPEN_QUESTIONS.forEach(function (q, i) {
+    cards.push({
+      type: "open",
+      eyebrow: "2 · Läsförståelse · Fråga " + (i + 1) + " av " + OPEN_QUESTIONS.length,
+      question: q,
+      key: "open." + i
+    });
+  });
+
+  WORDS.forEach(function (w, i) {
+    cards.push({
+      type: "word",
+      eyebrow: "3 · Ord och stavning · " + (i + 1) + " av " + WORDS.length,
+      instruction: "Skriv av ordet en gång:",
+      word: w,
+      key: "words." + i
+    });
+  });
+
+  SPELL_CHOICES.forEach(function (c, i) {
+    cards.push({
+      type: "choice",
+      eyebrow: "3 · Ringa in rätt stavning · " + (i + 1) + " av " + SPELL_CHOICES.length,
+      prompt: "Vilket ord är rätt stavat?",
+      options: c.options,
+      correct: c.correct,
+      key: "choice." + i,
+      correctMsg: "Snyggt! Rätt stavat.",
+      wrongMsg: "Nästan – rätt svar är " + c.correct + "."
+    });
+  });
+
+  CLASSIFY.forEach(function (c, i) {
+    cards.push({
+      type: "classify",
+      eyebrow: "4 · Substantiv, verb eller adjektiv? · " + (i + 1) + " av " + CLASSIFY.length,
+      subject: c.word,
+      tags: ["S", "V", "A"],
+      tagNames: TAG_NAMES,
+      correct: c.correct,
+      key: "classify." + i
+    });
+  });
+
+  cards.push({
+    type: "long",
+    eyebrow: "5 · Skriv själv – vad händer sedan?",
+    prompt: "Vad hittar Leo och hans pappa vid vattnet? Vad passar nyckeln till? Skriv minst 6 meningar.",
+    key: "long",
+    minSentences: 6,
+    placeholder: "Fortsätt berättelsen här..."
+  });
+
+  cards.push({
+    type: "checklist",
+    eyebrow: "Kom ihåg!",
+    prompt: "Kolla igenom innan du lämnar in:",
+    items: CHECKLIST,
+    key: "checklist"
+  });
+
+  cards.push({
+    type: "summary",
+    eyebrow: "Klart! 🎉",
+    title: "Bra jobbat!",
+    lead: "Du har svarat på hela läxan. Visa eller skriv ut svaren nedan så en vuxen kan kolla igenom.",
+    buildSummary: function (state) {
+      var lines = [];
+      lines.push("SVENSKALÄXA – ÅRSKURS 4 – Den mystiska ön");
+      lines.push("Namn: " + (state.name || "–") + "    Datum: " + (state.date || "–"));
+      lines.push("");
+      lines.push("LÄSFÖRSTÅELSE");
+      OPEN_QUESTIONS.forEach(function (q, i) {
+        lines.push((i + 1) + ". " + q);
+        lines.push("   " + ((state.open && state.open[i]) || "(inget svar)"));
+      });
+      lines.push("");
+      lines.push("ORD OCH STAVNING (avskrivna ord)");
+      WORDS.forEach(function (w, i) {
+        lines.push("- " + w + ": " + ((state.words && state.words[i]) || "(inget svar)"));
+      });
+      lines.push("");
+      lines.push("RÄTT STAVNING");
+      SPELL_CHOICES.forEach(function (c, i) {
+        var sel = state.choice && state.choice[i];
+        lines.push("- " + c.correct + (sel ? (sel === c.correct ? "  ✓ rätt" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+      });
+      lines.push("");
+      lines.push("SUBSTANTIV, VERB, ADJEKTIV");
+      CLASSIFY.forEach(function (c, i) {
+        var sel = state.classify && state.classify[i];
+        lines.push("- " + c.word + ": " + c.correct + (sel ? (sel === c.correct ? "  ✓" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+      });
+      lines.push("");
+      lines.push("SKRIV SJÄLV – FORTSÄTTNINGEN");
+      lines.push(state.long || "(inget svar)");
+      lines.push("");
+      lines.push("CHECKLISTA");
+      CHECKLIST.forEach(function (label, i) {
+        lines.push(((state.checklist && state.checklist[i]) ? "[x] " : "[ ] ") + label);
+      });
+      return lines.join("\n");
+    }
+  });
+
+  SwipeHomework.init({
+    mount: "#app",
+    title: "Den mystiska ön",
+    subtitle: "Svenskaläxa · Årskurs 4",
+    storageKey: "franco-svenska-den-mystiska-on-v1",
+    backHref: "../index.html",
+    cards: cards
+  });
+})();
+</script>
+</body>
+</html>

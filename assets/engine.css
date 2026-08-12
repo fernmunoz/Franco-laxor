@@ -1,0 +1,275 @@
+/* ============================================================
+   Franco läxor – delad design & app-motor
+   Samma tokens och kortsystem används av startsidan och varje läxa.
+   ============================================================ */
+
+:root {
+  --paper: #eef0e5;
+  --paper-card: #fbfaf2;
+  --ink: #1c2b26;
+  --ink-soft: #52645b;
+  --navy: #1f4b52;
+  --navy-soft: #d7e2df;
+  --brass: #a97427;
+  --brass-soft: #efe1c4;
+  --coral: #b6482f;
+  --coral-soft: #f3ded7;
+  --sea: #2f7a63;
+  --sea-soft: #dcece3;
+  --line: #cdd2bf;
+  --shadow: rgba(28, 43, 38, 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1e1c;
+    --paper-card: #16302a;
+    --ink: #edf1e8;
+    --ink-soft: #a6b7ac;
+    --navy: #8fd1d3;
+    --navy-soft: #1e3c3c;
+    --brass: #e7b565;
+    --brass-soft: #3a3221;
+    --coral: #e58b71;
+    --coral-soft: #3d2420;
+    --sea: #74cba8;
+    --sea-soft: #17352a;
+    --line: #2d443c;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1e1c;
+  --paper-card: #16302a;
+  --ink: #edf1e8;
+  --ink-soft: #a6b7ac;
+  --navy: #8fd1d3;
+  --navy-soft: #1e3c3c;
+  --brass: #e7b565;
+  --brass-soft: #3a3221;
+  --coral: #e58b71;
+  --coral-soft: #3d2420;
+  --sea: #74cba8;
+  --sea-soft: #17352a;
+  --line: #2d443c;
+  --shadow: rgba(0, 0, 0, 0.45);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 12% 8%, color-mix(in srgb, var(--navy) 10%, transparent), transparent),
+    radial-gradient(ellipse 55% 35% at 88% 92%, color-mix(in srgb, var(--brass) 10%, transparent), transparent);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.serif { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; }
+
+/* ---------- app shell (per-läxa) ---------- */
+body.app-shell { overflow: hidden; height: 100dvh; display: flex; flex-direction: column; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: max(0.9rem, env(safe-area-inset-top)) 1.1rem 0.5rem;
+  flex: 0 0 auto;
+}
+.back-link {
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--navy);
+  text-decoration: none;
+  border: 1.5px solid var(--line);
+  font-size: 1.1rem;
+}
+.compass { width: 30px; height: 30px; flex: 0 0 auto; opacity: 0.9; }
+.app-title {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--navy);
+  line-height: 1.15;
+}
+.app-title small {
+  display: block;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 0.15rem;
+}
+
+.progress-wrap { padding: 0.15rem 1.1rem 0.6rem; flex: 0 0 auto; }
+.progress-track { height: 6px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sea), var(--brass));
+  border-radius: 4px;
+  transition: width 0.35s ease;
+}
+.progress-label { margin-top: 0.4rem; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); }
+
+.card-stage {
+  flex: 1 1 auto;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0.4rem 1.1rem;
+  touch-action: pan-y;
+  min-height: 0;
+}
+.card {
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  max-height: 100%;
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 14px 30px -12px var(--shadow), 0 2px 8px -2px var(--shadow);
+  padding: 1.4rem 1.3rem 1.2rem;
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.7rem;
+  cursor: grab;
+  will-change: transform, opacity;
+  -webkit-user-select: none; user-select: none;
+}
+.card.dragging { cursor: grabbing; transition: none !important; }
+.card :is(input, textarea, button, label) { -webkit-user-select: auto; user-select: auto; }
+
+.eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--brass); }
+.story-title { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 1.7rem; margin: 0.1rem 0 0; color: var(--navy); text-wrap: balance; }
+.lead { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+.hint-text { margin-top: auto; color: var(--ink-soft); font-size: 0.85rem; }
+
+.field-row { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.4rem; }
+.field-label { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em; color: var(--ink-soft); text-transform: uppercase; }
+.field-input, .field-textarea {
+  font-family: inherit; font-size: 1rem; color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--line); border-radius: 10px; padding: 0.65rem 0.8rem; width: 100%;
+  text-transform: none; font-weight: 400;
+}
+.field-input:focus, .field-textarea:focus { outline: none; border-color: var(--navy); }
+.field-input.center { text-align: center; font-size: 1.15rem; }
+.field-textarea { resize: vertical; min-height: 7rem; line-height: 1.5; }
+
+.story-text { font-size: 1rem; line-height: 1.65; }
+.story-text p { margin: 0 0 0.75rem; }
+
+.question-text { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 1.25rem; color: var(--ink); margin: 0; text-wrap: balance; }
+
+.instruction { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+.big-word { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 2.1rem; text-align: center; color: var(--navy); margin: 0.2rem 0; }
+.check-feedback { min-height: 1.3rem; text-align: center; color: var(--sea); font-weight: 600; margin: 0; }
+
+.choice-row { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 0.3rem; }
+.choice-btn {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 1.3rem;
+  padding: 0.85rem 1rem; border-radius: 12px; border: 1.5px solid var(--line);
+  background: var(--paper); color: var(--ink); cursor: pointer; text-align: center;
+}
+.choice-btn.is-correct { background: var(--sea-soft); border-color: var(--sea); color: var(--sea); }
+.choice-btn.is-wrong { background: var(--coral-soft); border-color: var(--coral); color: var(--coral); }
+.choice-btn:disabled { cursor: default; }
+
+.classify-row { display: flex; gap: 0.6rem; margin-top: 0.3rem; }
+.classify-btn {
+  flex: 1; font-size: 1rem; font-weight: 700; padding: 0.8rem 0.4rem; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer;
+}
+.classify-btn.is-correct { background: var(--sea-soft); border-color: var(--sea); color: var(--sea); }
+.classify-btn.is-wrong { background: var(--coral-soft); border-color: var(--coral); color: var(--coral); }
+.classify-legend { font-size: 0.78rem; color: var(--ink-soft); margin: 0; }
+.classify-feedback { min-height: 1.2rem; font-size: 0.85rem; color: var(--ink-soft); margin: 0; }
+
+.counter-text { font-size: 0.82rem; color: var(--ink-soft); margin: 0; }
+.counter-text.is-ready { color: var(--sea); font-weight: 600; }
+
+.check-item { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.95rem; padding: 0.4rem 0; border-bottom: 1px solid var(--line); }
+.check-item:last-child { border-bottom: none; }
+.check-item input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; accent-color: var(--sea); }
+
+.summary-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.3rem; }
+.btn {
+  font-family: inherit; font-size: 0.85rem; font-weight: 600; padding: 0.6rem 0.9rem;
+  border-radius: 10px; border: 1.5px solid var(--navy); background: var(--navy); color: var(--paper-card); cursor: pointer;
+}
+.btn.secondary { background: transparent; color: var(--navy); }
+.btn.danger { border-color: var(--coral); color: var(--coral); background: transparent; }
+.summary-box {
+  white-space: pre-wrap; font-size: 0.85rem; line-height: 1.5; background: var(--paper);
+  border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem; width: 100%; min-height: 10rem;
+  font-family: inherit; color: var(--ink);
+}
+
+.nav-bar { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; gap: 1.4rem; padding: 0.6rem 1.1rem max(0.8rem, env(safe-area-inset-bottom)); }
+.nav-btn { width: 46px; height: 46px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--paper-card); color: var(--navy); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.nav-btn:disabled { opacity: 0.35; cursor: default; }
+.nav-hint { font-size: 0.75rem; color: var(--ink-soft); letter-spacing: 0.03em; min-width: 9rem; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) { .card { transition: none !important; } }
+@media print {
+  .app-header, .progress-wrap, .nav-bar { display: none; }
+  body { overflow: visible; height: auto; }
+  .card-stage { padding: 0; }
+  .card { box-shadow: none; max-height: none; overflow: visible; }
+}
+
+/* ---------- startsida (läxväljaren) ---------- */
+.landing {
+  min-height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: max(2rem, env(safe-area-inset-top)) 1.3rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.landing-header { display: flex; align-items: center; gap: 0.7rem; }
+.landing-header .compass { width: 38px; height: 38px; }
+.landing-title { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 1.6rem; color: var(--navy); margin: 0; }
+.landing-sub { margin: 0.15rem 0 0; color: var(--ink-soft); font-size: 0.9rem; }
+
+.homework-list { display: flex; flex-direction: column; gap: 0.9rem; list-style: none; margin: 0; padding: 0; }
+.homework-tile {
+  display: block;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1.1rem 1.2rem;
+  box-shadow: 0 10px 22px -14px var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.homework-tile::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
+  background: var(--tile-accent, var(--brass));
+}
+.tile-top { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem; }
+.tile-subject { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--tile-accent, var(--brass)); }
+.tile-title { font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 1.25rem; margin: 0.25rem 0 0.2rem; color: var(--navy); }
+.tile-desc { margin: 0; font-size: 0.88rem; color: var(--ink-soft); }
+.tile-status {
+  margin-top: 0.7rem; display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.78rem; color: var(--ink-soft);
+}
+.tile-status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--line); flex: 0 0 auto; }
+.tile-status.is-started .dot { background: var(--brass); }
+.tile-status.is-done .dot { background: var(--sea); }
+.tile-status.is-done { color: var(--sea); font-weight: 600; }
+.tile-bar { margin-top: 0.5rem; height: 4px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.tile-bar-fill { height: 100%; background: var(--tile-accent, var(--brass)); border-radius: 3px; }
+
+.landing-empty { color: var(--ink-soft); font-size: 0.9rem; border: 1px dashed var(--line); border-radius: 14px; padding: 1.4rem; text-align: center; }
+.landing-footer { margin-top: auto; color: var(--ink-soft); font-size: 0.75rem; text-align: center; }
