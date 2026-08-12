@@ -1,0 +1,817 @@
+<title>Svenskaläxa – Den mystiska ön</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<style>
+  :root {
+    --paper: #eef0e5;
+    --paper-card: #fbfaf2;
+    --ink: #1c2b26;
+    --ink-soft: #52645b;
+    --navy: #1f4b52;
+    --navy-soft: #d7e2df;
+    --brass: #a97427;
+    --brass-soft: #efe1c4;
+    --coral: #b6482f;
+    --coral-soft: #f3ded7;
+    --sea: #2f7a63;
+    --sea-soft: #dcece3;
+    --line: #cdd2bf;
+    --shadow: rgba(28, 43, 38, 0.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0f1e1c;
+      --paper-card: #16302a;
+      --ink: #edf1e8;
+      --ink-soft: #a6b7ac;
+      --navy: #8fd1d3;
+      --navy-soft: #1e3c3c;
+      --brass: #e7b565;
+      --brass-soft: #3a3221;
+      --coral: #e58b71;
+      --coral-soft: #3d2420;
+      --sea: #74cba8;
+      --sea-soft: #17352a;
+      --line: #2d443c;
+      --shadow: rgba(0, 0, 0, 0.45);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0f1e1c;
+    --paper-card: #16302a;
+    --ink: #edf1e8;
+    --ink-soft: #a6b7ac;
+    --navy: #8fd1d3;
+    --navy-soft: #1e3c3c;
+    --brass: #e7b565;
+    --brass-soft: #3a3221;
+    --coral: #e58b71;
+    --coral-soft: #3d2420;
+    --sea: #74cba8;
+    --sea-soft: #17352a;
+    --line: #2d443c;
+    --shadow: rgba(0, 0, 0, 0.45);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    background-image:
+      radial-gradient(ellipse 60% 40% at 12% 8%, color-mix(in srgb, var(--navy) 10%, transparent), transparent),
+      radial-gradient(ellipse 55% 35% at 88% 92%, color-mix(in srgb, var(--brass) 10%, transparent), transparent);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: max(0.9rem, env(safe-area-inset-top)) 1.1rem 0.5rem;
+    flex: 0 0 auto;
+  }
+  .compass { width: 30px; height: 30px; flex: 0 0 auto; opacity: 0.9; }
+  .app-title {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--navy);
+    line-height: 1.15;
+  }
+  .app-title small {
+    display: block;
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 0.15rem;
+  }
+
+  .progress-wrap {
+    padding: 0.15rem 1.1rem 0.6rem;
+    flex: 0 0 auto;
+  }
+  .progress-track {
+    height: 6px;
+    border-radius: 4px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sea), var(--brass));
+    border-radius: 4px;
+    transition: width 0.35s ease;
+  }
+  .progress-label {
+    margin-top: 0.4rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .card-stage {
+    flex: 1 1 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 1.1rem;
+    touch-action: pan-y;
+    min-height: 0;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 480px;
+    height: 100%;
+    max-height: 100%;
+    background: var(--paper-card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 14px 30px -12px var(--shadow), 0 2px 8px -2px var(--shadow);
+    padding: 1.4rem 1.3rem 1.2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    cursor: grab;
+    will-change: transform, opacity;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .card.dragging { cursor: grabbing; transition: none !important; }
+  .card :is(input, textarea, button, label) { -webkit-user-select: auto; user-select: auto; }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--brass);
+  }
+  .story-title {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: 1.7rem;
+    margin: 0.1rem 0 0;
+    color: var(--navy);
+    text-wrap: balance;
+  }
+  .lead { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .hint-text { margin-top: auto; color: var(--ink-soft); font-size: 0.85rem; }
+
+  .field-row { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.4rem; }
+  .field-label {
+    display: flex; flex-direction: column; gap: 0.35rem;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--ink-soft); text-transform: uppercase;
+  }
+  .field-input, .field-textarea {
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 0.65rem 0.8rem;
+    width: 100%;
+    text-transform: none;
+    font-weight: 400;
+  }
+  .field-input:focus, .field-textarea:focus {
+    outline: none;
+    border-color: var(--navy);
+  }
+  .field-input.center { text-align: center; font-size: 1.15rem; }
+  .field-textarea { resize: vertical; min-height: 7rem; line-height: 1.5; }
+
+  .story-text { font-size: 1rem; line-height: 1.65; }
+  .story-text p { margin: 0 0 0.75rem; }
+
+  .question-text {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: 1.25rem;
+    color: var(--ink);
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .instruction { margin: 0; color: var(--ink-soft); font-size: 0.9rem; }
+  .big-word {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: 2.1rem;
+    text-align: center;
+    color: var(--navy);
+    margin: 0.2rem 0;
+  }
+  .check-feedback { min-height: 1.3rem; text-align: center; color: var(--sea); font-weight: 600; margin: 0; }
+
+  .choice-row { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 0.3rem; }
+  .choice-btn {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    font-size: 1.3rem;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    text-align: center;
+  }
+  .choice-btn.is-correct { background: var(--sea-soft); border-color: var(--sea); color: var(--sea); }
+  .choice-btn.is-wrong { background: var(--coral-soft); border-color: var(--coral); color: var(--coral); }
+  .choice-btn:disabled { cursor: default; }
+
+  .classify-row { display: flex; gap: 0.6rem; margin-top: 0.3rem; }
+  .classify-btn {
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 0.8rem 0.4rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--line);
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .classify-btn.is-correct { background: var(--sea-soft); border-color: var(--sea); color: var(--sea); }
+  .classify-btn.is-wrong { background: var(--coral-soft); border-color: var(--coral); color: var(--coral); }
+  .classify-legend { font-size: 0.78rem; color: var(--ink-soft); margin: 0; }
+  .classify-feedback { min-height: 1.2rem; font-size: 0.85rem; color: var(--ink-soft); margin: 0; }
+
+  .counter-text { font-size: 0.82rem; color: var(--ink-soft); margin: 0; }
+  .counter-text.is-ready { color: var(--sea); font-weight: 600; }
+
+  .check-item {
+    display: flex; align-items: flex-start; gap: 0.6rem;
+    font-size: 0.95rem; padding: 0.4rem 0; border-bottom: 1px solid var(--line);
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; accent-color: var(--sea); }
+
+  .summary-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.3rem; }
+  .btn {
+    font-family: inherit; font-size: 0.85rem; font-weight: 600;
+    padding: 0.6rem 0.9rem; border-radius: 10px; border: 1.5px solid var(--navy);
+    background: var(--navy); color: var(--paper-card); cursor: pointer;
+  }
+  .btn.secondary { background: transparent; color: var(--navy); }
+  .btn.danger { border-color: var(--coral); color: var(--coral); background: transparent; }
+  .summary-box {
+    white-space: pre-wrap; font-size: 0.85rem; line-height: 1.5;
+    background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
+    padding: 0.7rem; width: 100%; min-height: 10rem; font-family: inherit; color: var(--ink);
+  }
+
+  .nav-bar {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; gap: 1.4rem;
+    padding: 0.6rem 1.1rem max(0.8rem, env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    width: 46px; height: 46px; border-radius: 50%;
+    border: 1.5px solid var(--line); background: var(--paper-card);
+    color: var(--navy); font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .nav-hint { font-size: 0.75rem; color: var(--ink-soft); letter-spacing: 0.03em; min-width: 9rem; text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card { transition: none !important; }
+  }
+  @media print {
+    .app-header, .progress-wrap, .nav-bar { display: none; }
+    body { overflow: visible; height: auto; }
+    .card-stage { padding: 0; }
+    .card { box-shadow: none; max-height: none; overflow: visible; }
+  }
+</style>
+
+<div class="app-header">
+  <svg class="compass" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="20" r="17" stroke="var(--navy)" stroke-width="1.6"/>
+    <path d="M20 6 L23.5 18 L20 34 L16.5 18 Z" fill="var(--brass)"/>
+    <path d="M20 6 L23.5 18 L20 20 Z" fill="var(--navy)"/>
+    <circle cx="20" cy="20" r="2" fill="var(--navy)"/>
+  </svg>
+  <div class="app-title">Den mystiska ön<small>Svenskaläxa · Årskurs 4</small></div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel"></div>
+</div>
+
+<div class="card-stage" id="cardStage">
+  <div class="card" id="card"></div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn" id="prevBtn" aria-label="Föregående">‹</button>
+  <div class="nav-hint" id="navHint">Svep för att byta fråga</div>
+  <button class="nav-btn" id="nextBtn" aria-label="Nästa">›</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var STORAGE_KEY = "francoSvenskaLxa1";
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var OPEN_QUESTIONS = [
+    "Varför vaknade Leo tidigt?",
+    "Vad hade Leo och hans pappa med sig i båten?",
+    "Vad hittade Leo under granen?",
+    "Vilka tre saker låg i asken?",
+    "Vad stod det på papperslappen?",
+    "Vad tror DU att nyckeln går till?"
+  ];
+
+  var WORDS = ["morgon", "fönster", "fiskespö", "försiktigt", "fotografi", "nyckel"];
+
+  var SPELL_CHOICES = [
+    { options: ["nyckel", "nykel"], correct: "nyckel" },
+    { options: ["försiktigt", "försicktigt"], correct: "försiktigt" },
+    { options: ["fönster", "fönnster"], correct: "fönster" },
+    { options: ["gammal", "gamal"], correct: "gammal" },
+    { options: ["plötsligt", "plötslit"], correct: "plötsligt" }
+  ];
+
+  var CLASSIFY = [
+    { word: "båt", correct: "S" },
+    { word: "springa", correct: "V" },
+    { word: "gammal", correct: "A" },
+    { word: "nyckel", correct: "S" },
+    { word: "fiska", correct: "V" },
+    { word: "mystisk", correct: "A" },
+    { word: "ö", correct: "S" },
+    { word: "öppna", correct: "V" }
+  ];
+
+  var CHECKLIST = [
+    "Jag börjar meningarna med stor bokstav.",
+    "Jag har punkt, frågetecken eller utropstecken efter meningarna.",
+    "Jag har försökt stava orden rätt.",
+    "Jag har läst igenom min text en gång."
+  ];
+
+  var TAG_NAMES = { S: "substantiv", V: "verb", A: "adjektiv" };
+
+  var STORY_HTML =
+    "<p>På lördagsmorgonen vaknade Leo tidigt. Solen lyste in genom fönstret och han kunde höra måsarna utanför. Hans pappa hade lovat att de skulle åka ut med båten och fiska.</p>" +
+    "<p>De packade matsäck, flytvästar och fiskespön och gick ner till bryggan. Vattnet låg nästan helt stilla.</p>" +
+    "<p>Efter en stund ute på sjön fick Leo syn på en liten ö.</p>" +
+    "<p>– Har vi varit där någon gång? frågade han.</p>" +
+    "<p>Pappa skakade på huvudet.</p>" +
+    "<p>– Nej, faktiskt inte.</p>" +
+    "<p>De styrde båten mot ön och gick i land. Där fanns höga träd, stora stenar och en smal stig som ledde in mellan buskarna.</p>" +
+    "<p>Leo följde stigen. Plötsligt såg han något blänka under en gammal gran.</p>" +
+    "<p>Det var en liten metallask.</p>" +
+    "<p>– Pappa! Kom och titta!</p>" +
+    "<p>Leo öppnade försiktigt asken. Inuti låg ett gammalt fotografi, en nyckel och en hopvikt papperslapp.</p>" +
+    "<p>På lappen stod bara fyra ord: <em>”Nyckeln passar vid vattnet.”</em></p>" +
+    "<p>Leo tittade på sin pappa. – Vad tror du att det betyder?</p>";
+
+  // ---- build the card list ----
+  var cards = [];
+  cards.push({ type: "intro" });
+  cards.push({ type: "read" });
+  OPEN_QUESTIONS.forEach(function (q, i) { cards.push({ type: "open", q: q, i: i }); });
+  WORDS.forEach(function (w, i) { cards.push({ type: "word", w: w, i: i }); });
+  SPELL_CHOICES.forEach(function (c, i) { cards.push({ type: "choice", c: c, i: i }); });
+  CLASSIFY.forEach(function (c, i) { cards.push({ type: "classify", c: c, i: i }); });
+  cards.push({ type: "long" });
+  cards.push({ type: "checklist" });
+  cards.push({ type: "summary" });
+  var TOTAL = cards.length;
+
+  // ---- state ----
+  function defaultState() {
+    return {
+      currentIndex: 0,
+      name: "",
+      date: "",
+      open: new Array(OPEN_QUESTIONS.length).fill(""),
+      words: new Array(WORDS.length).fill(""),
+      choice: new Array(SPELL_CHOICES.length).fill(null),
+      classify: new Array(CLASSIFY.length).fill(null),
+      long: "",
+      checklist: new Array(CHECKLIST.length).fill(false)
+    };
+  }
+
+  var state = defaultState();
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      state = Object.assign(defaultState(), parsed);
+    }
+  } catch (e) { /* no localStorage, start fresh */ }
+
+  function persist() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+  }
+
+  // ---- DOM refs ----
+  var cardEl = document.getElementById("card");
+  var progressFill = document.getElementById("progressFill");
+  var progressLabel = document.getElementById("progressLabel");
+  var prevBtn = document.getElementById("prevBtn");
+  var nextBtn = document.getElementById("nextBtn");
+  var navHint = document.getElementById("navHint");
+
+  // ---- render functions ----
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderCard(card) {
+    switch (card.type) {
+      case "intro":
+        return (
+          '<div class="eyebrow">Start</div>' +
+          '<h1 class="story-title">Den mystiska ön</h1>' +
+          '<p class="lead">Svara på frågorna genom att svepa åt vänster. Dina svar sparas automatiskt.</p>' +
+          '<div class="field-row">' +
+          '<label class="field-label">Namn<input class="field-input" type="text" data-path="name" placeholder="Skriv ditt namn" /></label>' +
+          '<label class="field-label">Datum<input class="field-input" type="text" data-path="date" placeholder="åååå-mm-dd" /></label>' +
+          "</div>" +
+          '<p class="hint-text">Svep vänster för att börja läsa texten →</p>'
+        );
+      case "read":
+        return (
+          '<div class="eyebrow">1 · Läs texten</div>' +
+          '<h2 class="story-title" style="font-size:1.35rem">Den mystiska ön</h2>' +
+          '<div class="story-text">' + STORY_HTML + "</div>" +
+          '<p class="hint-text">Läst klart? Svep vidare till frågorna.</p>'
+        );
+      case "open":
+        return (
+          '<div class="eyebrow">2 · Läsförståelse · Fråga ' + (card.i + 1) + " av " + OPEN_QUESTIONS.length + "</div>" +
+          '<p class="question-text">' + esc(card.q) + "</p>" +
+          '<textarea class="field-textarea" data-path="open.' + card.i + '" rows="6" placeholder="Skriv ditt svar här..."></textarea>'
+        );
+      case "word":
+        return (
+          '<div class="eyebrow">3 · Ord och stavning · ' + (card.i + 1) + " av " + WORDS.length + "</div>" +
+          '<p class="instruction">Skriv av ordet en gång:</p>' +
+          '<p class="big-word">' + esc(card.w) + "</p>" +
+          '<input class="field-input center" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-path="words.' + card.i + '" data-check-word="' + esc(card.w) + '" placeholder="Skriv här" />' +
+          '<p class="check-feedback" data-check-feedback></p>'
+        );
+      case "choice": {
+        var selected = state.choice[card.i];
+        var btns = card.c.options
+          .map(function (opt) {
+            var cls = "choice-btn";
+            var disabled = "";
+            if (selected) {
+              disabled = "disabled";
+              if (opt === card.c.correct) cls += " is-correct";
+              else if (opt === selected) cls += " is-wrong";
+            }
+            return '<button type="button" class="' + cls + '" data-choice-value="' + esc(opt) + '" ' + disabled + ">" + esc(opt) + "</button>";
+          })
+          .join("");
+        return (
+          '<div class="eyebrow">3 · Ringa in rätt stavning · ' + (card.i + 1) + " av " + SPELL_CHOICES.length + "</div>" +
+          '<p class="instruction">Vilket ord är rätt stavat?</p>' +
+          '<div class="choice-row" data-choice-group="' + card.i + '">' + btns + "</div>" +
+          '<p class="check-feedback">' + (selected ? (selected === card.c.correct ? "Snyggt! Rätt stavat." : "Nästan – rätt svar är " + esc(card.c.correct) + ".") : "") + "</p>"
+        );
+      }
+      case "classify": {
+        var sel = state.classify[card.i];
+        var tags = ["S", "V", "A"];
+        var tagBtns = tags
+          .map(function (t) {
+            var cls = "classify-btn";
+            var disabled = "";
+            if (sel) {
+              disabled = "disabled";
+              if (t === card.c.correct) cls += " is-correct";
+              else if (t === sel) cls += " is-wrong";
+            }
+            return '<button type="button" class="' + cls + '" data-tag-value="' + t + '" ' + disabled + ">" + t + "</button>";
+          })
+          .join("");
+        return (
+          '<div class="eyebrow">4 · Substantiv, verb eller adjektiv? · ' + (card.i + 1) + " av " + CLASSIFY.length + "</div>" +
+          '<p class="classify-legend">S = substantiv &nbsp;·&nbsp; V = verb &nbsp;·&nbsp; A = adjektiv</p>' +
+          '<p class="big-word">' + esc(card.c.word) + "</p>" +
+          '<div class="classify-row" data-tag-group="' + card.i + '">' + tagBtns + "</div>" +
+          '<p class="classify-feedback">' + (sel ? (sel === card.c.correct ? "Rätt! " + esc(card.c.word) + " är ett " + TAG_NAMES[card.c.correct] + "." : "Rätt svar: " + TAG_NAMES[card.c.correct] + ".") : "") + "</p>"
+        );
+      }
+      case "long":
+        return (
+          '<div class="eyebrow">5 · Skriv själv – vad händer sedan?</div>' +
+          '<p class="instruction">Vad hittar Leo och hans pappa vid vattnet? Vad passar nyckeln till? Skriv minst 6 meningar.</p>' +
+          '<textarea class="field-textarea" data-path="long" rows="8" placeholder="Fortsätt berättelsen här..."></textarea>' +
+          '<p class="counter-text" data-sentence-counter></p>'
+        );
+      case "checklist": {
+        var items = CHECKLIST.map(function (label, i) {
+          return (
+            '<label class="check-item"><input type="checkbox" data-path="checklist.' + i + '" />' +
+            "<span>" + esc(label) + "</span></label>"
+          );
+        }).join("");
+        return '<div class="eyebrow">Kom ihåg!</div><p class="instruction">Kolla igenom innan du lämnar in:</p>' + items;
+      }
+      case "summary":
+        return (
+          '<div class="eyebrow">Klart! 🎉</div>' +
+          '<h2 class="story-title" style="font-size:1.4rem">Bra jobbat!</h2>' +
+          '<p class="lead">Du har svarat på hela läxan. Visa eller skriv ut svaren nedan så en vuxen kan kolla igenom.</p>' +
+          '<div class="summary-actions">' +
+          '<button type="button" class="btn" id="showSummaryBtn">Visa alla mina svar</button>' +
+          '<button type="button" class="btn secondary" id="printBtn">Skriv ut</button>' +
+          '<button type="button" class="btn danger" id="resetBtn">Börja om</button>' +
+          "</div>" +
+          '<textarea class="summary-box" id="summaryBox" style="display:none" readonly rows="14"></textarea>'
+        );
+      default:
+        return "";
+    }
+  }
+
+  function buildSummaryText() {
+    var lines = [];
+    lines.push("SVENSKALÄXA – ÅRSKURS 4 – Den mystiska ön");
+    lines.push("Namn: " + (state.name || "–") + "    Datum: " + (state.date || "–"));
+    lines.push("");
+    lines.push("LÄSFÖRSTÅELSE");
+    OPEN_QUESTIONS.forEach(function (q, i) {
+      lines.push((i + 1) + ". " + q);
+      lines.push("   " + (state.open[i] || "(inget svar)"));
+    });
+    lines.push("");
+    lines.push("ORD OCH STAVNING (avskrivna ord)");
+    WORDS.forEach(function (w, i) {
+      lines.push("- " + w + ": " + (state.words[i] || "(inget svar)"));
+    });
+    lines.push("");
+    lines.push("RÄTT STAVNING");
+    SPELL_CHOICES.forEach(function (c, i) {
+      var sel = state.choice[i];
+      lines.push("- " + c.correct + (sel ? (sel === c.correct ? "  ✓ rätt" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+    });
+    lines.push("");
+    lines.push("SUBSTANTIV, VERB, ADJEKTIV");
+    CLASSIFY.forEach(function (c, i) {
+      var sel = state.classify[i];
+      lines.push("- " + c.word + ": " + c.correct + (sel ? (sel === c.correct ? "  ✓" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+    });
+    lines.push("");
+    lines.push("SKRIV SJÄLV – FORTSÄTTNINGEN");
+    lines.push(state.long || "(inget svar)");
+    lines.push("");
+    lines.push("CHECKLISTA");
+    CHECKLIST.forEach(function (label, i) {
+      lines.push((state.checklist[i] ? "[x] " : "[ ] ") + label);
+    });
+    return lines.join("\n");
+  }
+
+  // ---- path helpers ----
+  function getPath(obj, path) {
+    var parts = path.split(".");
+    var v = obj;
+    for (var i = 0; i < parts.length; i++) v = v == null ? undefined : v[parts[i]];
+    return v;
+  }
+  function setPath(obj, path, value) {
+    var parts = path.split(".");
+    var o = obj;
+    for (var i = 0; i < parts.length - 1; i++) o = o[parts[i]];
+    o[parts[parts.length - 1]] = value;
+  }
+
+  function updateSentenceCounter(el, textEl) {
+    var text = textEl.value || "";
+    var count = (text.match(/[.!?]+/g) || []).length;
+    el.textContent = count + " av 6 meningar" + (count >= 6 ? " – snyggt! ✓" : "");
+    el.classList.toggle("is-ready", count >= 6);
+  }
+
+  function bindCard(index) {
+    var card = cards[index];
+
+    // plain inputs/textareas bound via data-path (not checkboxes)
+    var fields = cardEl.querySelectorAll('[data-path]');
+    fields.forEach(function (el) {
+      var path = el.getAttribute("data-path");
+      if (el.type === "checkbox") {
+        el.checked = !!getPath(state, path);
+        el.addEventListener("change", function () {
+          setPath(state, path, el.checked);
+          persist();
+        });
+      } else {
+        el.value = getPath(state, path) || "";
+        el.addEventListener("input", function () {
+          setPath(state, path, el.value);
+          persist();
+          if (el.hasAttribute("data-check-word")) {
+            var fb = cardEl.querySelector("[data-check-feedback]");
+            var target = el.getAttribute("data-check-word").trim().toLowerCase();
+            fb.textContent = el.value.trim().toLowerCase() === target ? "✓ Snyggt skrivet!" : "";
+          }
+        });
+      }
+    });
+
+    if (card.type === "word") {
+      var fb = cardEl.querySelector("[data-check-feedback]");
+      var input = cardEl.querySelector('[data-check-word]');
+      if (input && input.value.trim().toLowerCase() === card.w.toLowerCase()) fb.textContent = "✓ Snyggt skrivet!";
+    }
+
+    if (card.type === "long") {
+      var counter = cardEl.querySelector("[data-sentence-counter]");
+      var ta = cardEl.querySelector('[data-path="long"]');
+      updateSentenceCounter(counter, ta);
+      ta.addEventListener("input", function () { updateSentenceCounter(counter, ta); });
+    }
+
+    if (card.type === "choice") {
+      var group = cardEl.querySelector("[data-choice-group]");
+      if (group) {
+        group.querySelectorAll("[data-choice-value]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.choice[card.i] = btn.getAttribute("data-choice-value");
+            persist();
+            showCard(index, { instant: true });
+          });
+        });
+      }
+    }
+
+    if (card.type === "classify") {
+      var tgroup = cardEl.querySelector("[data-tag-group]");
+      if (tgroup) {
+        tgroup.querySelectorAll("[data-tag-value]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            state.classify[card.i] = btn.getAttribute("data-tag-value");
+            persist();
+            showCard(index, { instant: true });
+          });
+        });
+      }
+    }
+
+    if (card.type === "summary") {
+      var showBtn = document.getElementById("showSummaryBtn");
+      var box = document.getElementById("summaryBox");
+      showBtn.addEventListener("click", function () {
+        box.value = buildSummaryText();
+        box.style.display = box.style.display === "none" ? "block" : "none";
+        if (box.style.display === "block") { box.focus(); box.select(); }
+      });
+      document.getElementById("printBtn").addEventListener("click", function () {
+        box.value = buildSummaryText();
+        box.style.display = "block";
+        window.print();
+      });
+      document.getElementById("resetBtn").addEventListener("click", function () {
+        if (confirm("Vill du börja om från början? Alla svar rensas.")) {
+          try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+          state = defaultState();
+          showCard(0, { instant: true });
+        }
+      });
+    }
+  }
+
+  // ---- navigation / swipe ----
+  var isAnimating = false;
+  var animTimer = null;
+
+  function showCard(index, opts) {
+    index = Math.max(0, Math.min(TOTAL - 1, index));
+    if (index === state.currentIndex && !(opts && opts.instant)) return;
+    opts = opts || {};
+    var direction = opts.direction || 0;
+
+    function paint() {
+      cardEl.innerHTML = renderCard(cards[index]);
+      bindCard(index);
+      state.currentIndex = index;
+      persist();
+      progressFill.style.width = ((index + 1) / TOTAL) * 100 + "%";
+      progressLabel.textContent = "Steg " + (index + 1) + " av " + TOTAL;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === TOTAL - 1;
+      navHint.textContent = index === TOTAL - 1 ? "Klart!" : "Svep för att byta fråga";
+    }
+
+    // a fresh navigation always wins over one still animating
+    if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+
+    if (opts.instant || reduceMotion || direction === 0) {
+      isAnimating = false;
+      cardEl.style.transition = "none";
+      cardEl.style.transform = "translateX(0) rotate(0deg)";
+      cardEl.style.opacity = "1";
+      paint();
+      return;
+    }
+
+    isAnimating = true;
+    // slide the old card out, then paint, then slide new card in
+    cardEl.style.transition = "transform 0.2s ease, opacity 0.2s ease";
+    cardEl.style.transform = "translateX(" + (direction * -60) + "px) rotate(" + (direction * -4) + "deg)";
+    cardEl.style.opacity = "0";
+    animTimer = setTimeout(function () {
+      paint();
+      cardEl.style.transition = "none";
+      cardEl.style.transform = "translateX(" + (direction * 60) + "px) rotate(" + (direction * 4) + "deg)";
+      cardEl.style.opacity = "0";
+      requestAnimationFrame(function () {
+        cardEl.style.transition = "transform 0.22s ease, opacity 0.22s ease";
+        cardEl.style.transform = "translateX(0) rotate(0deg)";
+        cardEl.style.opacity = "1";
+        animTimer = setTimeout(function () { isAnimating = false; animTimer = null; }, 230);
+      });
+    }, 200);
+  }
+
+  function goNext() { if (state.currentIndex < TOTAL - 1) showCard(state.currentIndex + 1, { direction: -1 }); }
+  function goPrev() { if (state.currentIndex > 0) showCard(state.currentIndex - 1, { direction: 1 }); }
+
+  prevBtn.addEventListener("click", goPrev);
+  nextBtn.addEventListener("click", goNext);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight") goNext();
+    if (e.key === "ArrowLeft") goPrev();
+  });
+
+  // pointer-drag swipe
+  var dragging = false, startX = 0, startY = 0, dx = 0, dy = 0, horizontal = false, pointerId = null;
+  var DRAG_THRESHOLD = 10, SWIPE_THRESHOLD = 80;
+
+  cardEl.addEventListener("pointerdown", function (e) {
+    if (isAnimating) return;
+    dragging = true; horizontal = false;
+    startX = e.clientX; startY = e.clientY; dx = 0; dy = 0;
+    pointerId = e.pointerId;
+  });
+
+  cardEl.addEventListener("pointermove", function (e) {
+    if (!dragging) return;
+    dx = e.clientX - startX; dy = e.clientY - startY;
+    if (!horizontal && Math.abs(dx) > DRAG_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      horizontal = true;
+      cardEl.classList.add("dragging");
+      try { cardEl.setPointerCapture(pointerId); } catch (err) {}
+    }
+    if (horizontal) {
+      e.preventDefault();
+      var rot = Math.max(-12, Math.min(12, dx / 12));
+      cardEl.style.transform = "translateX(" + dx + "px) rotate(" + rot + "deg)";
+      cardEl.style.opacity = String(Math.max(0.4, 1 - Math.abs(dx) / 400));
+    }
+  });
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    cardEl.classList.remove("dragging");
+    if (horizontal) {
+      if (dx <= -SWIPE_THRESHOLD && state.currentIndex < TOTAL - 1) {
+        showCard(state.currentIndex + 1, { direction: -1 });
+      } else if (dx >= SWIPE_THRESHOLD && state.currentIndex > 0) {
+        showCard(state.currentIndex - 1, { direction: 1 });
+      } else {
+        cardEl.style.transition = "transform 0.25s ease, opacity 0.25s ease";
+        cardEl.style.transform = "translateX(0) rotate(0deg)";
+        cardEl.style.opacity = "1";
+      }
+    }
+    horizontal = false;
+  }
+
+  cardEl.addEventListener("pointerup", endDrag);
+  cardEl.addEventListener("pointercancel", endDrag);
+
+  // ---- boot ----
+  showCard(Math.min(state.currentIndex || 0, TOTAL - 1), { instant: true });
+})();
+</script>
