@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<title>Veckans mattetal – Matteläxa</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#173a37" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Läxor" />
+<link rel="manifest" href="../manifest.json" />
+<link rel="icon" href="../assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="../assets/engine.css" />
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/engine.js"></script>
+<script src="../assets/register-sw.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var MENTAL = [
+    { q: "24 + 38 = ?", options: ["62", "52", "72"], correct: "62" },
+    { q: "56 − 19 = ?", options: ["37", "47", "27"], correct: "37" },
+    { q: "145 + 260 = ?", options: ["405", "395", "415"], correct: "405" },
+    { q: "500 − 275 = ?", options: ["225", "235", "215"], correct: "225" },
+    { q: "68 + 27 = ?", options: ["95", "85", "105"], correct: "95" },
+    { q: "900 − 450 = ?", options: ["450", "460", "440"], correct: "450" }
+  ];
+
+  var TIMES = [
+    { q: "6 × 7 = ?", options: ["42", "48", "36"], correct: "42" },
+    { q: "8 × 4 = ?", options: ["32", "28", "36"], correct: "32" },
+    { q: "9 × 3 = ?", options: ["27", "30", "24"], correct: "27" },
+    { q: "56 ÷ 7 = ?", options: ["8", "9", "7"], correct: "8" },
+    { q: "45 ÷ 5 = ?", options: ["9", "8", "10"], correct: "9" },
+    { q: "7 × 8 = ?", options: ["56", "54", "64"], correct: "56" }
+  ];
+
+  var ODD_EVEN = [
+    { n: "47", correct: "U" },
+    { n: "82", correct: "J" },
+    { n: "156", correct: "J" },
+    { n: "233", correct: "U" },
+    { n: "91", correct: "U" },
+    { n: "400", correct: "J" }
+  ];
+
+  var COLUMN = [
+    "456 + 278",
+    "803 − 456",
+    "1245 + 386",
+    "674 − 298"
+  ];
+
+  var CLOCKS = [
+    { q: "Klockan är kvart över två på eftermiddagen. Vilken digital tid visar den?", options: ["14:15", "02:15", "14:45"], correct: "14:15" },
+    { q: "Klockan är halv sex på morgonen. Vilken digital tid visar den?", options: ["05:30", "06:30", "05:50"], correct: "05:30" },
+    { q: "Klockan är tjugo i tio på kvällen. Vilken digital tid visar den?", options: ["21:40", "22:20", "21:20"], correct: "21:40" },
+    { q: "Klockan är fem över elva på förmiddagen. Vilken digital tid visar den?", options: ["11:05", "10:55", "11:55"], correct: "11:05" }
+  ];
+
+  var PROBLEMS = [
+    "Anna har 24 klistermärken. Hon delar dem lika mellan sig själv och 3 kompisar (4 personer totalt). Hur många klistermärken får var och en?",
+    "En biobiljett kostar 85 kr. Familjen Karlsson är 4 personer och ska alla gå på bio. Hur mycket kostar det totalt?",
+    "Erik cyklar 15 minuter till skolan varje morgon och 15 minuter hem varje eftermiddag. Hur många minuter cyklar han totalt på en hel skolvecka (5 dagar)?",
+    "Ett paket kex innehåller 36 kex. Om 4 kompisar delar lika, hur många kex får varje kompis?"
+  ];
+
+  var CHECKLIST = [
+    "Jag har räknat i huvudet eller på kladdpapper innan jag svarat.",
+    "Jag har kontrollräknat mina uppställningar.",
+    "Jag har skrivit svar med rätt enhet (kr, min, kex, personer osv.).",
+    "Jag har läst igenom problemlösningarna en gång till."
+  ];
+
+  var cards = [];
+
+  cards.push({
+    type: "intro",
+    eyebrow: "Start",
+    title: "Veckans mattetal",
+    lead: "Svara på uppgifterna genom att svepa åt vänster. Dina svar sparas automatiskt.",
+    fields: [
+      { key: "name", label: "Namn", placeholder: "Skriv ditt namn" },
+      { key: "date", label: "Datum", placeholder: "åååå-mm-dd" }
+    ],
+    hint: "Svep vänster för att börja →"
+  });
+
+  MENTAL.forEach(function (c, i) {
+    cards.push({
+      type: "choice",
+      eyebrow: "1 · Huvudräkning · " + (i + 1) + " av " + MENTAL.length,
+      prompt: c.q,
+      options: c.options,
+      correct: c.correct,
+      key: "mental." + i,
+      correctMsg: "Snyggt! Rätt svar.",
+      wrongMsg: "Nästan – rätt svar är " + c.correct + "."
+    });
+  });
+
+  TIMES.forEach(function (c, i) {
+    cards.push({
+      type: "choice",
+      eyebrow: "2 · Multiplikation och division · " + (i + 1) + " av " + TIMES.length,
+      prompt: c.q,
+      options: c.options,
+      correct: c.correct,
+      key: "times." + i,
+      correctMsg: "Snyggt! Rätt svar.",
+      wrongMsg: "Nästan – rätt svar är " + c.correct + "."
+    });
+  });
+
+  ODD_EVEN.forEach(function (c, i) {
+    cards.push({
+      type: "classify",
+      eyebrow: "3 · Udda eller jämn? · " + (i + 1) + " av " + ODD_EVEN.length,
+      subject: c.n,
+      tags: ["U", "J"],
+      tagNames: { U: "udda", J: "jämn" },
+      correct: c.correct,
+      key: "oddeven." + i
+    });
+  });
+
+  COLUMN.forEach(function (task, i) {
+    cards.push({
+      type: "open",
+      eyebrow: "4 · Uppställning · " + (i + 1) + " av " + COLUMN.length,
+      question: "Räkna ut med uppställning: " + task,
+      key: "column." + i,
+      rows: 5,
+      placeholder: "Skriv uträkningen och svaret här"
+    });
+  });
+
+  CLOCKS.forEach(function (c, i) {
+    cards.push({
+      type: "choice",
+      eyebrow: "5 · Klockan · " + (i + 1) + " av " + CLOCKS.length,
+      prompt: c.q,
+      options: c.options,
+      correct: c.correct,
+      key: "clock." + i,
+      correctMsg: "Snyggt! Rätt svar.",
+      wrongMsg: "Nästan – rätt svar är " + c.correct + "."
+    });
+  });
+
+  PROBLEMS.forEach(function (q, i) {
+    cards.push({
+      type: "open",
+      eyebrow: "6 · Problemlösning · " + (i + 1) + " av " + PROBLEMS.length,
+      question: q,
+      key: "problem." + i,
+      rows: 4,
+      placeholder: "Visa hur du räknar och skriv svaret"
+    });
+  });
+
+  cards.push({
+    type: "long",
+    eyebrow: "7 · Skriv själv",
+    prompt: "Förklara med egna ord: vad är skillnaden mellan area och omkrets? Ge gärna ett eget exempel, till exempel med ett rum hemma eller ett bord.",
+    key: "long",
+    minSentences: 3,
+    placeholder: "Skriv din förklaring här..."
+  });
+
+  cards.push({
+    type: "checklist",
+    eyebrow: "Kom ihåg!",
+    prompt: "Kolla igenom innan du lämnar in:",
+    items: CHECKLIST,
+    key: "checklist"
+  });
+
+  cards.push({
+    type: "summary",
+    eyebrow: "Klart! 🎉",
+    title: "Bra jobbat!",
+    lead: "Du har räknat klart alla tal. Visa eller skriv ut svaren nedan så en vuxen kan kolla igenom.",
+    buildSummary: function (state) {
+      var lines = [];
+      lines.push("MATTELÄXA – ÅRSKURS 4 – Veckans mattetal");
+      lines.push("Namn: " + (state.name || "–") + "    Datum: " + (state.date || "–"));
+      lines.push("");
+      lines.push("HUVUDRÄKNING");
+      MENTAL.forEach(function (c, i) {
+        var sel = state.mental && state.mental[i];
+        lines.push("- " + c.q + " Rätt svar: " + c.correct + (sel ? (sel === c.correct ? "  ✓" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+      });
+      lines.push("");
+      lines.push("MULTIPLIKATION OCH DIVISION");
+      TIMES.forEach(function (c, i) {
+        var sel = state.times && state.times[i];
+        lines.push("- " + c.q + " Rätt svar: " + c.correct + (sel ? (sel === c.correct ? "  ✓" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+      });
+      lines.push("");
+      lines.push("UDDA ELLER JÄMN");
+      ODD_EVEN.forEach(function (c, i) {
+        var sel = state.oddeven && state.oddeven[i];
+        var name = c.correct === "U" ? "udda" : "jämn";
+        lines.push("- " + c.n + ": " + name + (sel ? (sel === c.correct ? "  ✓" : "  ✗") : "  (obesvarad)"));
+      });
+      lines.push("");
+      lines.push("UPPSTÄLLNING");
+      COLUMN.forEach(function (task, i) {
+        lines.push("- " + task + " =");
+        lines.push("   " + ((state.column && state.column[i]) || "(inget svar)"));
+      });
+      lines.push("");
+      lines.push("KLOCKAN");
+      CLOCKS.forEach(function (c, i) {
+        var sel = state.clock && state.clock[i];
+        lines.push("- " + c.q + " Rätt svar: " + c.correct + (sel ? (sel === c.correct ? "  ✓" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+      });
+      lines.push("");
+      lines.push("PROBLEMLÖSNING");
+      PROBLEMS.forEach(function (q, i) {
+        lines.push((i + 1) + ". " + q);
+        lines.push("   " + ((state.problem && state.problem[i]) || "(inget svar)"));
+      });
+      lines.push("");
+      lines.push("SKRIV SJÄLV – AREA OCH OMKRETS");
+      lines.push(state.long || "(inget svar)");
+      lines.push("");
+      lines.push("CHECKLISTA");
+      CHECKLIST.forEach(function (label, i) {
+        lines.push(((state.checklist && state.checklist[i]) ? "[x] " : "[ ] ") + label);
+      });
+      return lines.join("\n");
+    }
+  });
+
+  SwipeHomework.init({
+    mount: "#app",
+    title: "Veckans mattetal",
+    subtitle: "Matte · Årskurs 4",
+    storageKey: "franco-matte-tal-1-v1",
+    backHref: "../index.html",
+    cards: cards
+  });
+})();
+</script>
+</body>
+</html>
