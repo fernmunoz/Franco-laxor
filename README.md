@@ -13,6 +13,8 @@ och varje läxa ligger som en egen fil i `laxor/`.
   `SwipeHomework.init({...})`.
 - `index.html` listar alla läxor från `HOMEWORK_LIST` och visar hur långt
   han kommit på var och en (läses från `localStorage`).
+- Namn (Franco) och dagens datum fylls i automatiskt av motorn, ingen
+  startsida med fält behövs, första kortet är direkt första frågan/texten.
 
 ## Lägga till en ny läxa
 
@@ -39,7 +41,6 @@ men hämtar och cachar varje läxsida i farten första gången den öppnas.
 
 | type         | Används till                                   |
 |--------------|-------------------------------------------------|
-| `intro`      | Startkort med namn/datum-fält                   |
 | `read`       | En text att läsa                                |
 | `open`       | Öppen fråga med fritextsvar                     |
 | `word`       | Skriva av ett ord (för stavningsövning)         |

@@ -80,18 +80,6 @@
 
   var cards = [];
 
-  cards.push({
-    type: "intro",
-    eyebrow: "Start",
-    title: "Veckans mattetal",
-    lead: "Svara på uppgifterna genom att svepa åt vänster. Dina svar sparas automatiskt.",
-    fields: [
-      { key: "name", label: "Namn", placeholder: "Skriv ditt namn" },
-      { key: "date", label: "Datum", placeholder: "åååå-mm-dd" }
-    ],
-    hint: "Svep vänster för att börja →"
-  });
-
   MENTAL.forEach(function (c, i) {
     cards.push({
       type: "choice",

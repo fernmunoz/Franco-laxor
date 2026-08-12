@@ -9,7 +9,15 @@
   "use strict";
 
   var REGISTRY_KEY = "francoLaxorRegistry";
+  var DEFAULT_STUDENT_NAME = "Franco";
   var reduceMotion = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function todayStr() {
+    var d = new Date();
+    var mm = String(d.getMonth() + 1).padStart(2, "0");
+    var dd = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + mm + "-" + dd;
+  }
 
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -47,6 +55,10 @@
       var saved = localStorage.getItem(STORAGE_KEY);
       if (saved) state = Object.assign(state, JSON.parse(saved));
     } catch (e) { /* no storage available, start fresh in memory */ }
+
+    // Namn och datum är kända i förväg, ingen anledning att fråga om dem.
+    if (!state.name) state.name = config.studentName || DEFAULT_STUDENT_NAME;
+    if (!state.date) state.date = todayStr();
 
     function persist() {
       try {
