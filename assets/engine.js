@@ -137,7 +137,7 @@
             '<p class="check-feedback" data-check-feedback></p>'
           );
         case "choice": {
-          var selected = state[card.key];
+          var selected = getPath(state, card.key);
           var btns = (card.options || [])
             .map(function (opt) {
               var cls = "choice-btn";
@@ -160,7 +160,7 @@
           );
         }
         case "classify": {
-          var sel = state[card.key];
+          var sel = getPath(state, card.key);
           var tags = card.tags || [];
           var tagNames = card.tagNames || {};
           var tagBtns = tags
