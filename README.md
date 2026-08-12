@@ -16,11 +16,24 @@ och varje läxa ligger som en egen fil i `laxor/`.
 
 ## Lägga till en ny läxa
 
-1. Kopiera `laxor/den-mystiska-on.html` till en ny fil, t.ex. `laxor/matte-tal-1.html`.
+1. Kopiera `laxor/den-mystiska-on.html` till en ny fil, t.ex. `laxor/matte-tal-1.html`
+   (den har redan rätt `<head>` med manifest/ikoner/service worker ifylld, så
+   den behöver du inte röra).
 2. Byt ut kortlistan mot den nya läxans innehåll (se korttyperna nedan).
 3. Ge den ett eget `storageKey` i `SwipeHomework.init({...})` så svaren inte
    blandas ihop med andra läxor.
 4. Lägg till en rad i `HOMEWORK_LIST` i `index.html` som pekar på filen.
+
+## Appen på hemskärmen
+
+Sidan går att lägga till som en app-ikon på telefonen (`manifest.json` +
+`service-worker.js` + ikoner i `assets/icons/`). På iPhone: öppna sidan i
+Safari → Dela → "Lägg till på hemskärmen". På Android/Chrome kommer det
+oftast ett förslag om det automatiskt, annars samma väg via menyn.
+
+Lägger man till en helt ny läxfil (steg 1 ovan) fungerar den automatiskt
+offline också, service workern cachar bara `index.html` + motorn i förväg,
+men hämtar och cachar varje läxsida i farten första gången den öppnas.
 
 ## Korttyper motorn stödjer
 
