@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<title>Instuderingsfrågor – Biologi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#173a37" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Läxor" />
+<link rel="manifest" href="../manifest.json" />
+<link rel="icon" href="../assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="../assets/engine.css" />
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/engine.js"></script>
+<script src="../assets/register-sw.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Korta svar skrivna utifrån allmän grundskolebiologi, inte hämtade ur
+  // just den här läroboken. Stämmer med bokens sidnummer men kan skilja
+  // sig lite i formulering, dubbelkolla gärna mot boken vid behov.
+  var QUESTIONS = [
+    { q: "Vad betyder biologi och vad handlar ämnet om?", page: "s.4", a: "Biologi kommer från grekiskans “bios” (liv) och “logos” (lära) – läran om livet. Ämnet handlar om levande organismer: hur de fungerar, är uppbyggda, lever tillsammans och utvecklas." },
+    { q: "Vad är en organism?", page: "s.4", a: "En organism är en levande varelse, allt från encelliga bakterier till komplexa flercelliga djur och växter." },
+    { q: "Vad är ämnesomsättning? Ge exempel.", page: "s.4", a: "Ämnesomsättning (metabolism) är alla kemiska processer som omvandlar näring till energi och byggmaterial i kroppen. Exempel: matsmältning och cellandning." },
+    { q: "Vad betyder steril och varför kan något ändå vara levande?", page: "s.4", a: "Steril betyder oförmögen att fortplanta sig. Man räknas ändå som levande om man uppfyller de andra livskraven, t.ex. ämnesomsättning och tillväxt, även om just fortplantningen inte fungerar." },
+    { q: "Vilka fyra krav måste uppfyllas för liv?", page: "s.4", a: "Ämnesomsättning, förmåga att växa/utvecklas, förmåga att reagera på omgivningen, och förmåga att fortplanta sig." },
+    { q: "Varför är virus svåra att klassificera som levande?", page: "s.4", a: "Virus saknar egen ämnesomsättning och kan inte föröka sig själva – de måste ta sig in i en värdcell och utnyttja dess maskineri för att kunna föröka sig." },
+    { q: "Vad är en cell och varför är den viktig?", page: "s.5", a: "En cell är den minsta levande byggstenen som alla organismer är uppbyggda av. Allt liv, från bakterier till människor, bygger på celler och deras funktioner." },
+    { q: "Vad är en organell? Ge exempel.", page: "s.5", a: "En organell är en liten struktur inuti cellen med en specifik uppgift, ungefär som cellens “organ”. Exempel: cellkärna, mitokondrier, ribosomer." },
+    { q: "Vad är skillnaden mellan cellmembran och cellvägg?", page: "s.5", a: "Cellmembranet omger alla celler och reglerar vad som kommer in och ut. Cellväggen är ett hårdare skal utanför cellmembranet som ger extra stöd, den finns hos växtceller men inte hos djurceller." },
+    { q: "Vad gör ribosomer?", page: "s.5", a: "Ribosomer tillverkar proteiner i cellen genom att läsa av instruktioner från DNA." },
+    { q: "Vad gör mitokondrier?", page: "s.5", a: "Mitokondrier är cellens “kraftverk”, där cellandningen sker och frigör energi ur näring så cellen kan använda den." },
+    { q: "Vad är DNA och vad gör det?", page: "s.5", a: "DNA är cellens arvsmassa, en molekyl med alla instruktioner (gener) för hur organismen ska byggas upp och fungera. Den finns i cellkärnan och förs vidare till nya celler." },
+    { q: "Nämn organeller som finns i både djur- och växtceller.", page: "s.5", a: "Till exempel cellkärna, mitokondrier, ribosomer och cellmembran." },
+    { q: "Nämn en organell som bara finns i växtceller.", page: "s.5", a: "Kloroplaster (växtceller har ofta även cellvägg och en stor central vakuol, som djurceller saknar)." },
+    { q: "Vilka fyra celltyper finns?", page: "s.6", a: "Djurceller, växtceller, svampceller och bakterieceller." },
+    { q: "Vad är skillnaden mellan växtcell och djurcell?", page: "s.6", a: "Växtceller har cellvägg, kloroplaster och en stor vakuol, vilket djurceller saknar. Djurceller har bara cellmembran och inget av det andra." },
+    { q: "Vad gör kloroplaster och klorofyll?", page: "s.6", a: "Kloroplaster är organeller där fotosyntesen sker. Klorofyll är det gröna färgämnet i kloroplasterna som fångar upp solljusets energi." },
+    { q: "Vad är en bakterie och vad skiljer den från andra celler?", page: "s.6", a: "En bakterie är en encellig organism utan cellkärna, DNA:t flyter fritt i cellen. Djur-, växt- och svampceller har istället en cellkärna som omsluter DNA:t." },
+    { q: "Skriv formeln för cellandning.", page: "s.12", a: "Druvsocker + syre → koldioxid + vatten + energi (C6H12O6 + 6 O2 → 6 CO2 + 6 H2O + energi)." },
+    { q: "Var i cellen sker cellandningen?", page: "s.12", a: "I mitokondrierna." },
+    { q: "Rangordna organismer från enklast till mest avancerad i fem steg.", page: "s.12", a: "En vanlig grov indelning: bakterier → encelliga organismer (t.ex. amöbor) → svampar → växter → djur." },
+    { q: "Vad är ett svampdjur?", page: "s.13", a: "Ett enkelt, flercelligt djur utan riktiga organ eller nervsystem som lever fastsittande i vatten och filtrerar mat ur vattnet genom porer i kroppen." },
+    { q: "Insekter har två olika typer av uppväxt. Skriv vad de heter och hur de går till?", page: "s.14", a: "Fullständig förvandling: ägg → larv → puppa → fullbildad insekt (t.ex. fjärilar). Ofullständig förvandling: ägg → nymf (liknar en mindre vuxen) → fullbildad insekt, utan puppstadium (t.ex. gräshoppor)." },
+    { q: "Vad är ett exoskelett och vilka djur har det?", page: "", a: "Ett hårt yttre skal som sitter utanpå kroppen och ger stöd och skydd. Det har leddjur, t.ex. insekter, spindlar och kräftdjur." },
+    { q: "Vad är typiskt för leddjur?", page: "s.14", a: "Exoskelett samt en kropp och ben som är indelade i leder/segment." },
+    { q: "Vad skiljer spindeldjur från insekter?", page: "s.14", a: "Spindeldjur har 8 ben och kroppen i två delar. Insekter har 6 ben, kroppen i tre delar, och kan ha vingar och antenner, vilket spindeldjur saknar." },
+    { q: "Vilka grupper ingår i ryggradsdjuren och vad kännetecknar dem?", page: "s.14", a: "Fiskar, groddjur, kräldjur, fåglar och däggdjur. Gemensamt är att de har en ryggrad, ett inre skelett av ryggkotor." },
+    { q: "Vilka djur ingår i stammen blötdjur och vad har de gemensamt?", page: "s.14", a: "Till exempel snäckor, musslor och bläckfiskar. Gemensamt är en mjuk kropp, ofta skyddad av ett skal, och de flesta lever i eller nära vatten." }
+  ];
+
+  var cards = [];
+
+  QUESTIONS.forEach(function (item, i) {
+    cards.push({
+      type: "flip",
+      eyebrow: "Instuderingsfråga · " + (i + 1) + " av " + QUESTIONS.length,
+      question: item.q,
+      page: item.page,
+      answer: item.a,
+      correct: "kunde",
+      key: "q." + i
+    });
+  });
+
+  cards.push({
+    type: "summary",
+    eyebrow: "Klart! 🎉",
+    title: "Bra jobbat!",
+    lead: "Du har gått igenom alla instuderingsfrågor. Visa svaren nedan så en vuxen kan kolla igenom.",
+    buildSummary: function (state) {
+      var lines = [];
+      lines.push("BIOLOGI – INSTUDERINGSFRÅGOR");
+      lines.push("Namn: " + (state.name || "–") + "    Datum: " + (state.date || "–"));
+      lines.push("");
+      QUESTIONS.forEach(function (item, i) {
+        var rating = state.q && state.q[i];
+        var ratingText = rating === "kunde" ? "Kunde det ✓" : (rating === "ova" ? "Behöver öva mer 🔁" : "(obesvarad)");
+        lines.push((i + 1) + ". " + item.q + (item.page ? " (" + item.page + ")" : ""));
+        lines.push("   Facit: " + item.a);
+        lines.push("   " + ratingText);
+        lines.push("");
+      });
+      return lines.join("\n");
+    }
+  });
+
+  SwipeHomework.init({
+    mount: "#app",
+    title: "Instuderingsfrågor",
+    subtitle: "Biologi",
+    storageKey: "franco-biologi-instudering-1-v1",
+    backHref: "../index.html",
+    cards: cards
+  });
+})();
+</script>
+</body>
+</html>

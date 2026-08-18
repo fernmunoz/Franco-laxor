@@ -68,6 +68,11 @@
     // ska aldrig skriva över den riktiga, därav inRetry-spärren i persist().
     var homeState = state;
 
+    // Tillfälligt UI-läge för vändbara (flip) kort: vilka som är uppfällda
+    // just nu. Sparas inte, det är bara "har jag tryckt visa facit", inte
+    // ett svar i sig.
+    var revealedKeys = {};
+
     function persist() {
       if (inRetry) return;
       try {
@@ -199,6 +204,40 @@
             '<p class="classify-feedback">' + tfb + "</p>"
           );
         }
+        case "flip": {
+          var flipVal = getPath(state, card.key);
+          var flipRevealed = !!revealedKeys[card.key] || !!flipVal;
+          var flipBody;
+          if (!flipRevealed) {
+            flipBody = '<button type="button" class="btn" data-reveal-key="' + esc(card.key) + '">Visa facit</button>';
+          } else {
+            var answerHtml = card.answer
+              ? '<p class="flip-answer">' + esc(card.answer) + "</p>"
+              : '<p class="flip-answer flip-answer-hint">Kolla ' + esc(card.page || "boken") + " och jämför med ditt svar.</p>";
+            var rateBtns = [
+              { v: "kunde", label: "Jag kunde det ✓" },
+              { v: "ova", label: "Behöver öva mer 🔁" }
+            ]
+              .map(function (r) {
+                var cls = "choice-btn";
+                var disabled = "";
+                if (flipVal) {
+                  disabled = "disabled";
+                  if (r.v === "kunde") cls += " is-correct";
+                  else if (r.v === flipVal) cls += " is-wrong";
+                }
+                return '<button type="button" class="' + cls + '" data-choice-key="' + esc(card.key) + '" data-choice-value="' + r.v + '" ' + disabled + ">" + esc(r.label) + "</button>";
+              })
+              .join("");
+            flipBody = answerHtml + '<div class="choice-row">' + rateBtns + "</div>";
+          }
+          return (
+            '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
+            (card.page ? '<p class="flip-page">' + esc(card.page) + "</p>" : "") +
+            '<p class="question-text">' + esc(card.question || "") + "</p>" +
+            flipBody
+          );
+        }
         case "long":
           return (
             '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
@@ -292,6 +331,13 @@
         }
       }
 
+      cardEl.querySelectorAll("[data-reveal-key]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          revealedKeys[btn.getAttribute("data-reveal-key")] = true;
+          showCard(index, { instant: true });
+        });
+      });
+
       cardEl.querySelectorAll("[data-checklist-key]").forEach(function (el) {
         var key = el.getAttribute("data-checklist-key");
         var i = parseInt(el.getAttribute("data-checklist-index"), 10);
@@ -363,7 +409,7 @@
     // Frågor med facit (flerval, sortera) ska visa rätt/fel innan man går
     // vidare, annars missar man rättningen helt.
     function requiresAnswer(card) {
-      return card && (card.type === "choice" || card.type === "classify");
+      return card && (card.type === "choice" || card.type === "classify" || card.type === "flip");
     }
     function isAnswered(card) {
       return !!getPath(state, card.key);
@@ -383,6 +429,9 @@
       if (card.type === "classify") {
         var tn = card.tagNames || {};
         return (card.subject || "") + " — du svarade " + (tn[val] || val) + ", rätt är " + (tn[card.correct] || card.correct);
+      }
+      if (card.type === "flip") {
+        return (card.question || "") + (card.page ? " (" + card.page + ")" : "");
       }
       return (card.prompt || "") + " — du svarade " + val + ", rätt svar är " + card.correct;
     }
