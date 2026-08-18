@@ -50,7 +50,7 @@
     var STORAGE_KEY = config.storageKey || ("laxa-" + (config.title || "okand"));
     var mount = typeof config.mount === "string" ? document.querySelector(config.mount) : (config.mount || document.body);
 
-    document.body.classList.add("app-shell");
+    mount.classList.add("app-shell");
     document.title = config.title ? config.title + (config.subtitle ? " – " + config.subtitle : "") : document.title;
 
     var state = { currentIndex: 0 };
