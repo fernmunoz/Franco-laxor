@@ -90,6 +90,30 @@
       } catch (e) { /* ignore */ }
     }
 
+    // Nollställer hela läxan: sparade svar, repetitionsrunda och uppfällda
+    // facit. Anroparen frågar användaren först.
+    function clearStored() {
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        var reg = JSON.parse(localStorage.getItem(REGISTRY_KEY) || "{}");
+        delete reg[STORAGE_KEY];
+        localStorage.setItem(REGISTRY_KEY, JSON.stringify(reg));
+      } catch (e) { /* ignore */ }
+    }
+
+    function resetAll() {
+      clearStored();
+      CARDS = HOME_CARDS;
+      TOTAL = HOME_TOTAL;
+      inRetry = false;
+      revealedKeys = {};
+      state = { currentIndex: 0, name: config.studentName || DEFAULT_STUDENT_NAME, date: todayStr() };
+      homeState = state;
+      showCard(0, { instant: true });
+      // showCard sparar direkt, men en nollställd läxa ska se orörd ut på startsidan.
+      clearStored();
+    }
+
     // ---- build app shell markup ----
     mount.innerHTML =
       '<div class="app-header">' +
@@ -100,6 +124,7 @@
       '<path d="M20 6 L23.5 18 L20 20 Z" fill="var(--navy)"/>' +
       '<circle cx="20" cy="20" r="2" fill="var(--navy)"/></svg>' +
       '<div class="app-title">' + esc(config.title || "") + (config.subtitle ? "<small>" + esc(config.subtitle) + "</small>" : "") + "</div>" +
+      '<button type="button" class="reset-btn" id="resetHeaderBtn" aria-label="Börja om" title="Börja om">↺<span class="reset-label"> Börja om</span></button>' +
       "</div>" +
       '<div class="progress-wrap"><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><div class="progress-label" id="progressLabel"></div></div>' +
       '<div class="card-stage" id="cardStage"><div class="card" id="card"></div></div>' +
@@ -390,13 +415,7 @@
           } else if (card.retryRound) {
             returnHome();
           } else if (confirm("Vill du börja om från början? Alla svar rensas.")) {
-            try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
-            CARDS = HOME_CARDS;
-            TOTAL = HOME_TOTAL;
-            inRetry = false;
-            state = { currentIndex: 0 };
-            homeState = state;
-            showCard(0, { instant: true });
+            resetAll();
           }
         });
       }
@@ -536,6 +555,10 @@
       showCard(state.currentIndex + 1, { direction: -1 });
     }
     function goPrev() { if (state.currentIndex > 0) showCard(state.currentIndex - 1, { direction: 1 }); }
+
+    document.getElementById("resetHeaderBtn").addEventListener("click", function () {
+      if (confirm("Vill du börja om från början? Alla svar rensas.")) resetAll();
+    });
 
     prevBtn.addEventListener("click", goPrev);
     nextBtn.addEventListener("click", goNext);
