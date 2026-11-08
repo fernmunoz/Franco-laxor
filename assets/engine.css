@@ -180,7 +180,7 @@ body {
   color: var(--navy); background: var(--navy-soft);
   padding: 0.2rem 0.55rem; border-radius: 999px; margin: 0;
 }
-.flip-answer { font-size: 1rem; line-height: 1.55; background: var(--sea-soft); border: 1px solid var(--sea); border-radius: 12px; padding: 0.8rem 1rem; margin: 0; color: var(--ink); }
+.flip-answer { white-space: pre-line; font-size: 1rem; line-height: 1.55; background: var(--sea-soft); border: 1px solid var(--sea); border-radius: 12px; padding: 0.8rem 1rem; margin: 0; color: var(--ink); }
 .flip-answer.flip-answer-hint { background: var(--paper); border-style: dashed; color: var(--ink-soft); font-style: italic; }
 
 .choice-row { display: flex; flex-direction: column; gap: 0.7rem; margin-top: 0.3rem; }

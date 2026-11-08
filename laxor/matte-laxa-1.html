@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<title>Matteläxa 1 – Addition och subtraktion</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#173a37" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Läxor" />
+<link rel="manifest" href="../manifest.json" />
+<link rel="icon" href="../assets/icons/icon-192.png" />
+<link rel="apple-touch-icon" href="../assets/icons/apple-touch-icon.png" />
+<link rel="stylesheet" href="../assets/engine.css" />
+</head>
+<body>
+<div id="app"></div>
+<script src="../assets/engine.js"></script>
+<script src="../assets/register-sw.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Provlista kapitel 2: addition och subtraktion. Uppgifterna från
+  // provlistan är med, resten är egna uppgifter i samma stil.
+
+  // Tusentalsavgränsare med hårt mellanslag så "5 187" aldrig radbryts.
+  function nb(s) { return String(s).replace(/(\d) (?=\d{3}(?!\d))/g, "$1 "); }
+
+  // Lägger rätt svar på växlande plats, så rätt knapp inte alltid är först.
+  var pos = 0;
+  function mk(correct, wrongs) {
+    var opts = wrongs.slice();
+    opts.splice(pos % (wrongs.length + 1), 0, correct);
+    pos++;
+    return opts.map(nb);
+  }
+
+  var BEGREPP = [
+    { q: "Vad kallas svaret i en addition?", c: "summa", w: ["differens", "term"], hint: "Svaret i en addition heter summa." },
+    { q: "I additionen 7 + 3 = 10, vad kallas 7 och 3?", c: "termer", w: ["summor", "differenser"], hint: "Talen man adderar eller subtraherar heter termer." },
+    { q: "Vad kallas svaret i en subtraktion?", c: "differens", w: ["summa", "term"], hint: "Svaret i en subtraktion heter differens." },
+    { q: "Vad är summan av 150 och 60?", c: "210", w: ["90", "200"], hint: "Summa betyder addition: 150 + 60 = 210." },
+    { q: "Termerna i en subtraktion är 150 och 60. Vad är differensen?", c: "90", w: ["210", "80"], hint: "Differens betyder subtraktion: 150 − 60 = 90." },
+    { q: "Vilken uträkning ger differensen mellan 90 och 40?", c: "90 − 40", w: ["90 + 40", "40 − 90"], hint: "Differensen räknar du ut med subtraktion: 90 − 40 = 50." }
+  ];
+
+  var UPPSTALLNING = [
+    { q: "Räkna med uppställning: 4 578 + 609",
+      a: "Svar: 5 187\nEntalen: 8 + 9 = 17, skriv 7 och minnessiffra 1.\nTiotalen: 7 + 0 + 1 = 8.\nHundratalen: 5 + 6 = 11, skriv 1 och minnessiffra 1.\nTusentalen: 4 + 1 = 5." },
+    { q: "Räkna med uppställning: 805 − 543",
+      a: "Svar: 262\nEntalen: 5 − 3 = 2.\nTiotalen: 0 − 4 går inte. Växla ett hundratal mot 10 tiotal, då blir det 10 − 4 = 6 och hundratalen minskar från 8 till 7.\nHundratalen: 7 − 5 = 2." },
+    { q: "Räkna med uppställning: 854 − 436",
+      a: "Svar: 418\nEntalen: 4 − 6 går inte. Växla ett tiotal mot 10 ental: 14 − 6 = 8, tiotalen minskar från 5 till 4.\nTiotalen: 4 − 3 = 1.\nHundratalen: 8 − 4 = 4." },
+    { q: "Räkna med uppställning: 1 245 + 386",
+      a: "Svar: 1 631\nEntalen: 5 + 6 = 11, skriv 1 och minnessiffra 1.\nTiotalen: 4 + 8 + 1 = 13, skriv 3 och minnessiffra 1.\nHundratalen: 2 + 3 + 1 = 6.\nTusentalen: 1." },
+    { q: "Räkna med uppställning: 674 − 298",
+      a: "Svar: 376\nEntalen: 4 − 8 går inte. Växla ett tiotal: 14 − 8 = 6, tiotalen minskar från 7 till 6.\nTiotalen: 6 − 9 går inte. Växla ett hundratal: 16 − 9 = 7, hundratalen minskar från 6 till 5.\nHundratalen: 5 − 2 = 3." },
+    { q: "Räkna med uppställning: 3 407 + 2 986",
+      a: "Svar: 6 393\nEntalen: 7 + 6 = 13, skriv 3 och minnessiffra 1.\nTiotalen: 0 + 8 + 1 = 9.\nHundratalen: 4 + 9 = 13, skriv 3 och minnessiffra 1.\nTusentalen: 3 + 2 + 1 = 6." },
+    { q: "Räkna med uppställning: 5 002 − 1 748",
+      a: "Svar: 3 254\nTiotalen och hundratalen är nollor, så du växlar steg för steg: 1 tusental blir 10 hundratal, 1 av dem blir 10 tiotal, 1 av dem blir 10 ental.\nEntalen: 12 − 8 = 4.\nTiotalen: 9 − 4 = 5.\nHundratalen: 9 − 7 = 2.\nTusentalen: 4 − 1 = 3." }
+  ];
+
+  var OVERSLAG = [
+    { q: "Ungefär hur mycket är 3 798 + 5 235?", c: "9 000", w: ["8 000", "10 000"], hint: "Runda till tusental: 4 000 + 5 000 = 9 000." },
+    { q: "Ett familjepass kostar 2 896 kr och ett hotell 4 139 kr. Ungefär hur mycket kostar de tillsammans?", c: "7 000 kr", w: ["6 000 kr", "8 000 kr"], hint: "Runda till tusental: 3 000 + 4 000 = 7 000 kr." },
+    { q: "Ungefär hur mycket är 6 912 − 2 105?", c: "5 000", w: ["4 000", "9 000"], hint: "Runda till tusental: 7 000 − 2 000 = 5 000." },
+    { q: "Ungefär hur mycket är 4 089 + 1 876?", c: "6 000", w: ["5 000", "7 000"], hint: "Runda till tusental: 4 000 + 2 000 = 6 000." },
+    { q: "Ungefär hur mycket är 9 870 − 3 120?", c: "7 000", w: ["6 000", "13 000"], hint: "Runda till tusental: 10 000 − 3 000 = 7 000." }
+  ];
+
+  var SAMBAND = [
+    { q: "Vilken räkning hör ihop med 8 + 5 = 13?", c: "13 − 5 = 8", w: ["13 − 8 = 8", "5 − 8 = 13"], hint: "Addition och subtraktion hör ihop: 8 + 5 = 13 ger 13 − 5 = 8." },
+    { q: "Vilken räkning hör ihop med 13 − 8 = 5?", c: "5 + 8 = 13", w: ["13 + 8 = 5", "5 + 13 = 8"], hint: "13 − 8 = 5 ger 5 + 8 = 13." },
+    { q: "Ser du mönstret? 9 + 9 = 18 och 90 + 90 = 180. Vad är 900 + 900?", c: "1 800", w: ["180", "18 000"], hint: "Blir talen 10 gånger större blir svaret 10 gånger större: 900 + 900 = 1 800." },
+    { q: "6 + 6 = 12. Vad är 60 + 60?", c: "120", w: ["1 200", "72"], hint: "6 + 6 = 12, så 60 + 60 = 120." },
+    { q: "En cykel kostar 1 400 kr och en annan kostar 800 kr. Hur mycket skiljer det i pris?", c: "600 kr", w: ["2 200 kr", "700 kr"], hint: "Skillnaden räknar du med subtraktion: 1 400 − 800 = 600." },
+    { q: "Vilket tal saknas? □ + 45 = 120", c: "75", w: ["165", "85"], hint: "Det som saknas får du med subtraktion: 120 − 45 = 75." }
+  ];
+
+  var FLERA = [
+    { q: "Elma har 850 kr. Hon köper en tröja för 249 kr och ett par byxor för 380 kr. Hur mycket pengar har hon kvar?",
+      a: "Svar: 221 kr\nSteg 1, vad hon betalar: 249 + 380 = 629\nSteg 2, pengar kvar: 850 − 629 = 221\nHon har 221 kr kvar." },
+    { q: "Erik har 2 140 kr. Han köper en trumpet för 1 125 kr och en flöjt för 745 kr. Hur mycket pengar har han kvar?",
+      a: "Svar: 270 kr\nSteg 1, trumpet och flöjt: 1 125 + 745 = 1 870\nSteg 2, pengar kvar: 2 140 − 1 870 = 270\nHan har 270 kr kvar." },
+    { q: "Sara har 500 kr. Hon köper en bok för 135 kr och en tidning för 49 kr. Hur mycket pengar har hon kvar?",
+      a: "Svar: 316 kr\nSteg 1, bok och tidning: 135 + 49 = 184\nSteg 2, pengar kvar: 500 − 184 = 316\nHon har 316 kr kvar." },
+    { q: "Ali sparar 275 kr i januari och 340 kr i februari. Sedan köper han en hjälm för 450 kr. Hur mycket pengar har han kvar?",
+      a: "Svar: 165 kr\nSteg 1, allt han sparat: 275 + 340 = 615\nSteg 2, pengar kvar: 615 − 450 = 165\nHan har 165 kr kvar." }
+  ];
+
+  var PROVA = [
+    { q: "Ellen är 3 år äldre än Teo. Tillsammans är de 23 år. Hur gamla är Teo och Ellen?",
+      a: "Svar: Teo är 10 år och Ellen är 13 år.\nGör en tabell och gissa Teos ålder. Ellen är alltid 3 år äldre.\nTeo 8, Ellen 11: 8 + 11 = 19, för litet.\nTeo 12, Ellen 15: 12 + 15 = 27, för mycket.\nTeo 10, Ellen 13: 10 + 13 = 23, rätt!" },
+    { q: "Maja är 4 år äldre än Leo. Tillsammans är de 18 år. Hur gamla är Leo och Maja?",
+      a: "Svar: Leo är 7 år och Maja är 11 år.\nGissa Leos ålder, Maja är alltid 4 år äldre.\nLeo 5, Maja 9: 5 + 9 = 14, för litet.\nLeo 8, Maja 12: 8 + 12 = 20, för mycket.\nLeo 7, Maja 11: 7 + 11 = 18, rätt!" },
+    { q: "Marcus och Nora har tillsammans 30 kr. Marcus har 6 kr mer än Nora. Hur mycket har var och en?",
+      a: "Svar: Nora har 12 kr och Marcus har 18 kr.\nGissa Noras pengar, Marcus har alltid 6 kr mer.\nNora 10, Marcus 16: 10 + 16 = 26, för litet.\nNora 14, Marcus 20: 14 + 20 = 34, för mycket.\nNora 12, Marcus 18: 12 + 18 = 30, rätt!" },
+    { q: "En penna kostar 5 kr mer än ett suddgummi. Tillsammans kostar de 25 kr. Vad kostar var och en?",
+      a: "Svar: Suddgummit kostar 10 kr och pennan kostar 15 kr.\nGissa suddgummits pris, pennan kostar alltid 5 kr mer.\nSuddgummi 8, penna 13: 8 + 13 = 21, för litet.\nSuddgummi 12, penna 17: 12 + 17 = 29, för mycket.\nSuddgummi 10, penna 15: 10 + 15 = 25, rätt!" }
+  ];
+
+  // Ordningen följer provlistan.
+  var SECTIONS = [
+    { n: 1, title: "Begrepp", kind: "choice", list: BEGREPP, key: "begrepp", summary: "BEGREPP: TERM, SUMMA, DIFFERENS" },
+    { n: 2, title: "Uppställning", kind: "flip", list: UPPSTALLNING, key: "stall", page: "ma-boken s.46-49, 64-67", summary: "ADDITION OCH SUBTRAKTION MED UPPSTÄLLNING" },
+    { n: 3, title: "Överslagsräkning", kind: "choice", list: OVERSLAG, key: "overslag", summary: "ÖVERSLAGSRÄKNING" },
+    { n: 4, title: "Samband", kind: "choice", list: SAMBAND, key: "samband", summary: "SAMBANDET MELLAN ADDITION OCH SUBTRAKTION" },
+    { n: 5, title: "Flera beräkningar", kind: "flip", list: FLERA, key: "flera", page: "ma-boken s.54-55, 70-71", summary: "UPPGIFTER MED FLERA BERÄKNINGAR" },
+    { n: 6, title: "Pröva dig fram", kind: "flip", list: PROVA, key: "prova", page: "ma-boken s.57", summary: "PRÖVA DIG FRAM" }
+  ];
+
+  var cards = [];
+
+  SECTIONS.forEach(function (sec) {
+    sec.list.forEach(function (it, i) {
+      var eyebrow = sec.n + " · " + sec.title + " · " + (i + 1) + " av " + sec.list.length;
+      if (sec.kind === "choice") {
+        cards.push({
+          type: "choice",
+          eyebrow: eyebrow,
+          prompt: nb(it.q),
+          big: true,
+          options: mk(it.c, it.w),
+          correct: nb(it.c),
+          key: sec.key + "." + i,
+          correctMsg: nb("Rätt! " + it.hint),
+          wrongMsg: nb("Nästan. " + it.hint)
+        });
+      } else {
+        cards.push({
+          type: "flip",
+          eyebrow: eyebrow,
+          question: nb(it.q),
+          page: sec.page,
+          answer: nb(it.a),
+          correct: "kunde",
+          key: sec.key + "." + i
+        });
+      }
+    });
+  });
+
+  cards.push({
+    type: "summary",
+    eyebrow: "Klart! 🎉",
+    title: "Bra jobbat!",
+    lead: "Du har gått igenom hela provlistan för kapitel 2. Här är det du kan öva mer på.",
+    buildSummary: function (state) {
+      var lines = [];
+      lines.push("MATTELÄXA 1 – KAPITEL 2, ADDITION OCH SUBTRAKTION");
+      lines.push("Namn: " + (state.name || "–") + "    Datum: " + (state.date || "–"));
+      SECTIONS.forEach(function (sec) {
+        lines.push("");
+        lines.push(sec.summary);
+        sec.list.forEach(function (it, i) {
+          var sel = state[sec.key] && state[sec.key][i];
+          if (sec.kind === "choice") {
+            lines.push("- " + it.q + " Rätt svar: " + it.c + (sel ? (sel === nb(it.c) ? "  ✓" : "  ✗ svarade " + sel) : "  (obesvarad)"));
+          } else {
+            var rating = sel === "kunde" ? "Kunde det ✓" : (sel === "ova" ? "Behöver öva mer" : "(obesvarad)");
+            lines.push("- " + it.q + "  " + rating);
+          }
+        });
+      });
+      return lines.join("\n");
+    }
+  });
+
+  SwipeHomework.init({
+    mount: "#app",
+    title: "Matteläxa 1",
+    subtitle: "Matte · Kapitel 2",
+    storageKey: "franco-matte-laxa-1-v1",
+    backHref: "../index.html",
+    cards: cards
+  });
+})();
+</script>
+</body>
+</html>

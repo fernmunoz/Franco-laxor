@@ -168,7 +168,7 @@
           if (selected) fb = selected === card.correct ? (card.correctMsg || "Snyggt! Rätt svar.") : (card.wrongMsg || ("Nästan – rätt svar är " + card.correct + "."));
           return (
             '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
-            (card.prompt ? '<p class="instruction">' + esc(card.prompt) + "</p>" : "") +
+            (card.prompt ? '<p class="' + (card.big ? "question-text" : "instruction") + '">' + esc(card.prompt) + "</p>" : "") +
             '<div class="choice-row">' + btns + "</div>" +
             '<p class="check-feedback">' + esc(fb) + "</p>"
           );
