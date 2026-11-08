@@ -29,13 +29,9 @@
   // Tusentalsavgränsare med hårt mellanslag så "5 187" aldrig radbryts.
   function nb(s) { return String(s).replace(/(\d) (?=\d{3}(?!\d))/g, "$1 "); }
 
-  // Lägger rätt svar på växlande plats, så rätt knapp inte alltid är först.
-  var pos = 0;
+  // Ordningen på alternativen slumpas av motorn, här räcker det med en lista.
   function mk(correct, wrongs) {
-    var opts = wrongs.slice();
-    opts.splice(pos % (wrongs.length + 1), 0, correct);
-    pos++;
-    return opts.map(nb);
+    return [correct].concat(wrongs).map(nb);
   }
 
   var BEGREPP = [

@@ -12,6 +12,37 @@
   var DEFAULT_STUDENT_NAME = "Franco";
   var reduceMotion = global.matchMedia && global.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  function shuffled(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  // Slumpar ordningen på svarsalternativen i flervalskorten, så rätt svar inte
+  // ligger på en gissningsbar plats. Rätt svars plats slumpas, men aldrig mer än
+  // två gånger i rad på samma plats (ren slump ger ibland långa serier som ser ut
+  // som ett mönster). Ordningen ligger fast tills sidan laddas om, annars skulle
+  // knapparna hoppa varje gång kortet ritas om. Sätt shuffle: false på ett kort
+  // om ordningen på alternativen har betydelse.
+  function shuffleChoices(cards) {
+    var lastPos = [];
+    cards.forEach(function (card) {
+      if (card.type !== "choice" || card.shuffle === false || !card.options || card.options.length < 2) return;
+      var n = card.options.length;
+      var others = shuffled(card.options.filter(function (o) { return o !== card.correct; }));
+      var pos;
+      do {
+        pos = Math.floor(Math.random() * n);
+      } while (lastPos.length >= 2 && lastPos[lastPos.length - 1] === pos && lastPos[lastPos.length - 2] === pos);
+      others.splice(pos, 0, card.correct);
+      card.options = others;
+      lastPos.push(pos);
+    });
+  }
+
   function todayStr() {
     var d = new Date();
     var mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -43,6 +74,7 @@
 
   function initHomework(config) {
     var HOME_CARDS = config.cards || [];
+    shuffleChoices(HOME_CARDS);
     var HOME_TOTAL = HOME_CARDS.length;
     var CARDS = HOME_CARDS;
     var TOTAL = HOME_TOTAL;
@@ -542,6 +574,7 @@
         clone.eyebrow = "Repetition · " + (i + 1) + " av " + wrongCards.length;
         return clone;
       });
+      shuffleChoices(cloned); // ny ordning än första varvet
       cloned.push({
         type: "summary",
         eyebrow: "Repetition klar",
