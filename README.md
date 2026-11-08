@@ -54,7 +54,7 @@ men hämtar och cachar varje läxsida i farten första gången den öppnas.
 | `classify`   | Sortera ett ord under en av flera taggar        |
 | `long`       | Längre skrivuppgift med meningsräknare          |
 | `checklist`  | Bockningslista att gå igenom innan man är klar  |
-| `flip`       | Instuderingsfråga – tryck fram facit, skatta sig själv (kunde/öva mer) |
+| `flip`       | Instuderingsfråga – tryck fram facit, skatta sig själv (kunde/öva mer). Med `column: { a, b, op: "+" eller "−" }` ritas facit upp som en animerad uppställning |
 | `summary`    | Sista kortet – visar/skriver ut alla svar       |
 
 Se `laxor/den-mystiska-on.html` för ett fullständigt exempel på varje typ.

@@ -73,6 +73,73 @@
     // ett svar i sig.
     var revealedKeys = {};
 
+    // Vilka uppställningar som redan spelats upp. En uppställning animeras
+    // första gången facit visas, sedan står den still (annars spelas den om
+    // varje gång kortet ritas om, t.ex. när man skattar sig själv).
+    var animatedKeys = {};
+
+    // Ritar en uppställning (addition eller subtraktion) som rutat papper och
+    // låter den "räknas ut" kolumn för kolumn från entalen. Minnessiffror och
+    // växlingar räknas fram här utifrån talen. col = { a, b, op: "+" | "−" }.
+    function buildColumnCalc(col, animate) {
+      var isAdd = col.op === "+";
+      var res = isAdd ? col.a + col.b : col.a - col.b;
+      var sa = String(col.a), sb = String(col.b), sr = String(res);
+      var n = Math.max(sa.length, sb.length, sr.length);
+      var T = 0.9; // sekunder per kolumn
+
+      function digitAt(s, i) { var ch = s.charAt(s.length - 1 - i); return ch === "" ? null : ch; }
+
+      var cols = []; // index i = platsvärde från höger (0 = ental)
+      var carry = 0, borrow = 0;
+      for (var i = 0; i < n; i++) {
+        var da = digitAt(sa, i), db = digitAt(sb, i);
+        var x = da === null ? 0 : parseInt(da, 10);
+        var y = db === null ? 0 : parseInt(db, 10);
+        var c = { da: da, db: db, dr: digitAt(sr, i), hl: i * T, pop: i * T + 0.5, chip: "", chipKind: "", chipAt: 0, struck: false };
+        if (isAdd) {
+          var s = x + y + carry;
+          if (carry > 0) { c.chip = String(carry); c.chipKind = "carry"; c.chipAt = (i - 1) * T + 0.55; }
+          carry = s >= 10 ? 1 : 0;
+        } else {
+          var top = x - borrow;
+          var need = top < y;
+          var eff = need ? top + 10 : top;
+          if (eff !== x) { c.chip = String(eff); c.chipKind = "borrow"; c.chipAt = i * T + 0.2; c.struck = true; }
+          borrow = need ? 1 : 0;
+        }
+        cols.push(c);
+      }
+
+      function cellsFor(row) {
+        var out = '<span class="cc-cell cc-op">' + (row === "b" ? esc(col.op) : "") + "</span>";
+        for (var k = n - 1; k >= 0; k--) {
+          var cc = cols[k];
+          var style = "--hl:" + cc.hl.toFixed(2) + "s;--d:" + (row === "res" ? cc.pop : cc.chipAt).toFixed(2) + "s";
+          if (row === "carry") {
+            out += '<span class="cc-cell cc-carry" style="' + style + '">' +
+              (cc.chip ? '<span class="cc-chip cc-chip-' + cc.chipKind + '" style="' + style + '">' + esc(cc.chip) + "</span>" : "") + "</span>";
+          } else if (row === "a") {
+            out += '<span class="cc-cell cc-digit' + (cc.struck ? " cc-struck" : "") + '" style="' + style + '">' + (cc.da === null ? "" : cc.da) + "</span>";
+          } else if (row === "b") {
+            out += '<span class="cc-cell cc-digit" style="' + style + '">' + (cc.db === null ? "" : cc.db) + "</span>";
+          } else {
+            out += '<span class="cc-cell cc-digit cc-res" style="' + style + '">' + (cc.dr === null ? "" : cc.dr) + "</span>";
+          }
+        }
+        return out;
+      }
+
+      return (
+        '<div class="column-calc' + (animate ? "" : " is-static") + '" style="--n:' + n + '" role="img" aria-label="' +
+        esc(col.a + " " + col.op + " " + col.b + " = " + res) + '">' +
+        cellsFor("carry") + cellsFor("a") + cellsFor("b") +
+        '<span class="cc-rule"></span>' +
+        cellsFor("res") +
+        "</div>"
+      );
+    }
+
     function persist() {
       if (inRetry) return;
       try {
@@ -107,6 +174,7 @@
       TOTAL = HOME_TOTAL;
       inRetry = false;
       revealedKeys = {};
+      animatedKeys = {};
       state = { currentIndex: 0, name: config.studentName || DEFAULT_STUDENT_NAME, date: todayStr() };
       homeState = state;
       showCard(0, { instant: true });
@@ -254,7 +322,13 @@
                 return '<button type="button" class="' + cls + '" data-choice-key="' + esc(card.key) + '" data-choice-value="' + r.v + '" ' + disabled + ">" + esc(r.label) + "</button>";
               })
               .join("");
-            flipBody = answerHtml + '<div class="choice-row">' + rateBtns + "</div>";
+            var calcHtml = "";
+            if (card.column) {
+              calcHtml = buildColumnCalc(card.column, !animatedKeys[card.key]) +
+                '<button type="button" class="link-btn" data-replay-key="' + esc(card.key) + '">↻ Spela upp igen</button>';
+              animatedKeys[card.key] = true;
+            }
+            flipBody = calcHtml + answerHtml + '<div class="choice-row">' + rateBtns + "</div>";
           }
           return (
             '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
@@ -359,6 +433,13 @@
       cardEl.querySelectorAll("[data-reveal-key]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           revealedKeys[btn.getAttribute("data-reveal-key")] = true;
+          showCard(index, { instant: true });
+        });
+      });
+
+      cardEl.querySelectorAll("[data-replay-key]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          delete animatedKeys[btn.getAttribute("data-replay-key")];
           showCard(index, { instant: true });
         });
       });
@@ -471,6 +552,7 @@
       CARDS = cloned;
       TOTAL = CARDS.length;
       inRetry = true;
+      animatedKeys = {}; // uppställningarna spelas upp igen i repetitionsrundan
       state = { currentIndex: 0 };
       showCard(0, { instant: true });
     }
