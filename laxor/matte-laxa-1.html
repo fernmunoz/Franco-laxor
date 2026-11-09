@@ -66,6 +66,62 @@
     it.col = { a: parseInt(m[1].replace(/ /g, ""), 10), op: m[2], b: parseInt(m[3].replace(/ /g, ""), 10) };
   });
 
+  // Genomgång före uppställningarna: subtraktion med uppställning, en del i taget.
+  // Kolumn 0 = ental, 1 = tiotal, 2 = hundratal. Se "lesson" i engine.js.
+  var ALL = ["a", "b", "op", "rule"];
+  var LEKTIONER = [
+    { title: "Skriv talen under varandra", col: { a: 748, b: 325, op: "−" }, stages: [
+      { show: ["a"], labels: true, text: "Vi ska räkna 748 − 325. Först skriver vi det största talet, 748, högst upp. Siffrorna får var sin ruta: 7 hundratal (H), 4 tiotal (T) och 8 ental (E)." },
+      { show: ["b"], text: "Sedan skriver vi talet vi ska ta bort, 325, under. Viktigt: ental under ental, tiotal under tiotal och hundratal under hundratal. Alla siffror ska stå rakt under varandra." },
+      { show: ["op", "rule"], text: "Sist sätter vi ett minustecken framför och drar ett streck under. Nu är uppställningen klar! Kom ihåg: vid minus står alltid det största talet överst." }
+    ] },
+    { title: "Räkna från höger, en kolumn i taget", col: { a: 748, b: 325, op: "−" }, stages: [
+      { show: ALL, labels: true, text: "Nu räknar vi 748 − 325. Regel nummer ett: vi börjar alltid längst till höger, med entalen, och räknar sedan åt vänster." },
+      { hl: 0, text: "Entalen: 8 − 5. Tänk så här: du har 8 och tar bort 5. Hur många blir kvar?" },
+      { hl: 0, res: [0], text: "8 − 5 = 3. Skriv 3 under strecket, i entalen." },
+      { hl: 1, text: "Nu tiotalen: 4 − 2." },
+      { hl: 1, res: [1], text: "4 − 2 = 2. Skriv 2 under strecket, i tiotalen." },
+      { hl: 2, text: "Sist hundratalen: 7 − 3." },
+      { hl: 2, res: [2], text: "7 − 3 = 4. Skriv 4. Svaret är 423! Du räknade från höger till vänster, en kolumn i taget." }
+    ] },
+    { title: "När det inte går: växla", col: { a: 52, b: 27, op: "−" }, stages: [
+      { show: ALL, labels: true, text: "Nu ska vi räkna 52 − 27. Vi börjar med entalen, som alltid: 2 − 7." },
+      { hl: 0, text: "Vi har 2 ental och ska ta bort 7. Det går inte! Vi har för få ental." },
+      { blocks: { from: "tiotal", to: "ental" }, text: "Lösningen är att växla. Ett tiotal är värt lika mycket som 10 ental. Så vi kan ta ett tiotal från tiotalen och göra om det till 10 ental." },
+      { chips: { 1: "4", 0: "12" }, struck: [0, 1], text: "Tiotalen: 5 tiotal blir 4 tiotal, för vi tog ett. Entalen: 2 ental och 10 nya ental blir 12 ental. Vi stryker de gamla siffrorna och skriver de nya ovanför." },
+      { hl: 0, text: "Nu går det! Entalen: 12 − 7." },
+      { hl: 0, res: [0], text: "12 − 7 = 5. Skriv 5 i entalen." },
+      { hl: 1, text: "Tiotalen: nu är det 4 tiotal kvar (inte 5, för vi växlade). 4 − 2." },
+      { hl: 1, res: [1], text: "4 − 2 = 2. Skriv 2. Svaret är 25! Kom ihåg: när du växlar blir siffran bredvid ett mindre." }
+    ] },
+    { title: "Växla flera gånger", col: { a: 674, b: 298, op: "−" }, stages: [
+      { show: ALL, labels: true, text: "Nu räknar vi 674 − 298. Här måste vi växla två gånger. Vi tar det en kolumn i taget." },
+      { hl: 0, text: "Entalen: 4 − 8 går inte. Vi måste växla från tiotalen." },
+      { chips: { 1: "6", 0: "14" }, struck: [0, 1], text: "7 tiotal blir 6 tiotal. 4 ental och 10 nya ental blir 14 ental." },
+      { hl: 0, res: [0], text: "14 − 8 = 6. Skriv 6 i entalen." },
+      { hl: 1, text: "Tiotalen: nu har vi 6 tiotal. 6 − 9 går inte! Vi måste växla igen, nu från hundratalen." },
+      { blocks: { from: "hundratal", to: "tiotal" }, chips: { 2: "5", 1: "16" }, struck: [2], text: "Ett hundratal är värt 10 tiotal. 6 hundratal blir 5 hundratal, och 6 tiotal plus 10 nya tiotal blir 16 tiotal." },
+      { hl: 1, res: [1], text: "16 − 9 = 7. Skriv 7 i tiotalen." },
+      { hl: 2, text: "Hundratalen: nu har vi 5 hundratal kvar. 5 − 2." },
+      { hl: 2, res: [2], text: "5 − 2 = 3. Svaret är 376! Du växlade två gånger, och det är helt okej." }
+    ] },
+    { title: "Växla när det står en nolla", col: { a: 305, b: 168, op: "−" }, stages: [
+      { show: ALL, labels: true, hl: 1, text: "Nu räknar vi 305 − 168. Titta på tiotalen: där står en nolla. Det blir lite klurigt, men vi tar det steg för steg." },
+      { hl: 0, text: "Entalen: 5 − 8 går inte. Vi måste växla från tiotalen. Men tiotalen är 0, där finns inget att ta!" },
+      { blocks: { from: "hundratal", to: "tiotal" }, chips: { 2: "2", 1: "10" }, struck: [2, 1], text: "Då går vi till hundratalen och växlar där först. 3 hundratal blir 2 hundratal, och tiotalen blir 10 (ett hundratal är 10 tiotal)." },
+      { blocks: { from: "tiotal", to: "ental" }, chips: { 1: "9", 0: "15" }, struck: [0], text: "Nu har tiotalen något att ge! Vi tar ett tiotal och gör om det till 10 ental. Då blir det 9 tiotal kvar, och entalen blir 5 + 10 = 15." },
+      { hl: 0, res: [0], text: "Nu kan vi räkna entalen: 15 − 8 = 7. Skriv 7." },
+      { hl: 1, res: [1], text: "Tiotalen: 9 − 6 = 3. Skriv 3." },
+      { hl: 2, res: [2], text: "Hundratalen: 2 − 1 = 1. Svaret är 137! Nollor kan kännas svåra, men tänk på att växla steg för steg." }
+    ] },
+    { title: "Kolla att svaret blev rätt", col: { a: 376, b: 298, op: "+" }, stages: [
+      { show: ALL, labels: true, text: "Så här kollar du om du har räknat rätt. Vi fick 674 − 298 = 376. Gör tvärtom med addition: 376 + 298 ska bli 674, talet vi började med." },
+      { hl: 0, res: [0], chips: { 1: "1" }, text: "Entalen: 6 + 8 = 14. Skriv 4 och ta med 1 till tiotalen." },
+      { hl: 1, res: [1], chips: { 2: "1" }, text: "Tiotalen: 7 + 9 + 1 = 17. Skriv 7 och ta med 1 till hundratalen." },
+      { hl: 2, res: [2], text: "Hundratalen: 3 + 2 + 1 = 6. Svaret är 674, precis talet vi började med! Då vet vi att subtraktionen var rätt." }
+    ] }
+  ];
+
   var OVERSLAG = [
     { q: "Ungefär hur mycket är 3 798 + 5 235?", c: "9 000", w: ["8 000", "10 000"], hint: "Runda till tusental: 4 000 + 5 000 = 9 000." },
     { q: "Ett familjepass kostar 2 896 kr och ett hotell 4 139 kr. Ungefär hur mycket kostar de tillsammans?", c: "7 000 kr", w: ["6 000 kr", "8 000 kr"], hint: "Runda till tusental: 3 000 + 4 000 = 7 000 kr." },
@@ -118,6 +174,19 @@
   var cards = [];
 
   SECTIONS.forEach(function (sec) {
+    // Genomgången kommer precis före uppställningarna.
+    if (sec.n === 2) {
+      LEKTIONER.forEach(function (l, i) {
+        cards.push({
+          type: "lesson",
+          eyebrow: "2 · Genomgång · del " + (i + 1) + " av " + LEKTIONER.length,
+          title: l.title,
+          col: l.col,
+          stages: l.stages,
+          key: "lektion." + i
+        });
+      });
+    }
     sec.list.forEach(function (it, i) {
       var eyebrow = sec.n + " · " + sec.title + " · " + (i + 1) + " av " + sec.list.length;
       if (sec.kind === "choice") {

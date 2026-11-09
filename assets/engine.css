@@ -233,7 +233,55 @@ body {
 .column-calc.is-static .cc-digit, .column-calc.is-static .cc-res, .column-calc.is-static .cc-chip, .column-calc.is-static .cc-struck::after { animation: none; }
 @media (prefers-reduced-motion: reduce) {
   .column-calc .cc-digit, .column-calc .cc-res, .column-calc .cc-chip, .cc-struck::after { animation: none !important; }
+  .lesson-calc .cc-new-in, .lesson-calc .cc-new-pop, .lesson-calc .cc-new-rule, .lesson-calc .cc-new-strike::after,
+  .lb-pop, .lesson-text { animation: none !important; }
 }
+
+/* ---------- lektion: uppställning steg för steg ---------- */
+.lesson-calc .cc-label { height: 1.3rem; line-height: 1.3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 0.7rem; font-weight: 700; color: var(--ink-soft); }
+.cc-hide { visibility: hidden; }
+.cc-hlcol { background-color: var(--brass-soft); border-color: var(--brass); }
+.cc-rule.cc-hide { visibility: hidden; }
+.cc-op.cc-new-in { color: var(--ink); }
+
+/* Bara det som är nytt i steget animeras (resten ritas direkt). */
+.column-calc.is-static.lesson-calc .cc-new-in { animation: cc-in 0.4s ease var(--d, 0s) both; }
+.column-calc.is-static.lesson-calc .cc-new-pop { animation: cc-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+.column-calc.is-static.lesson-calc .cc-new-strike::after { animation: cc-strike 0.4s ease both; }
+.column-calc.is-static.lesson-calc .cc-new-rule { transform-origin: left; animation: cc-rule 0.4s ease both; }
+@keyframes cc-rule { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.lesson-text {
+  margin: 0.2rem 0 0; padding: 0.8rem 1rem;
+  background: var(--navy-soft); border-radius: 12px;
+  font-size: 1.02rem; line-height: 1.55; color: var(--ink);
+  animation: cc-in 0.3s ease both;
+}
+.lesson-dots { display: flex; justify-content: center; gap: 0.4rem; flex-wrap: wrap; }
+.lesson-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--line); }
+.lesson-dot.is-done { background: var(--sea); }
+.lesson-dot.is-current { background: var(--brass); transform: scale(1.3); }
+.lesson-actions { margin-top: auto; display: flex; flex-direction: column; gap: 0.4rem; }
+.lesson-actions .btn { width: 100%; padding: 0.8rem 0.9rem; font-size: 1rem; }
+.lesson-secondary { display: flex; justify-content: center; gap: 1.2rem; }
+.lesson-done { margin: 0; text-align: center; color: var(--sea); font-weight: 600; font-size: 0.95rem; }
+
+/* Klossar: 1 tiotal = 10 ental */
+.lesson-blocks { display: flex; align-items: flex-end; justify-content: center; gap: 0.9rem; margin: 0.1rem 0; }
+.lb-group { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+.lb-label { font-size: 0.78rem; font-weight: 600; color: var(--ink-soft); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+.lb-eq { font-size: 1.6rem; color: var(--ink-soft); padding-bottom: 1.4rem; }
+.lb-smalls { display: flex; flex-wrap: wrap; gap: 0.15rem; max-width: 7.4rem; justify-content: center; align-items: flex-end; }
+.lb-smalls.lb-s-lb-o { max-width: 4.1rem; } /* tio ental i två rader om fem */
+.lb-sq { display: inline-block; border-radius: 3px; background: var(--sea); }
+.lb-big { background: var(--brass); }
+.lb-big.lb-h { width: 3rem; height: 3rem; }
+.lb-big.lb-t { width: 0.9rem; height: 3rem; }
+.lb-big.lb-o { width: 0.9rem; height: 0.9rem; }
+.lb-smalls .lb-t { width: 0.55rem; height: 2.4rem; }
+.lb-smalls .lb-o { width: 0.7rem; height: 0.7rem; }
+.lb-smalls .lb-h { width: 1.2rem; height: 1.2rem; }
+.lb-pop { animation: cc-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) var(--d, 0s) both; }
 
 .link-btn {
   align-self: center; background: none; border: none; cursor: pointer;

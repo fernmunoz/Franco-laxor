@@ -110,6 +110,12 @@
     // varje gång kortet ritas om, t.ex. när man skattar sig själv).
     var animatedKeys = {};
 
+    // Lektionskort (guidad genomgång steg för steg): vilket steg man står på
+    // och om nästa ritning ska animeras. Bara minnet, att man förstått en del
+    // ("ok") sparas däremot som ett vanligt svar.
+    var lessonStage = {};
+    var lessonAnimate = {};
+
     // Ritar en uppställning (addition eller subtraktion) som rutat papper och
     // låter den "räknas ut" kolumn för kolumn från entalen. Minnessiffror och
     // växlingar räknas fram här utifrån talen. col = { a, b, op: "+" | "−" }.
@@ -172,6 +178,88 @@
       );
     }
 
+    // ---- lektionskort ----
+    // Ett lektionskort visar en uppställning (card.col = { a, b, op }) och går
+    // igenom den i steg (card.stages). Varje steg lägger till något: en rad,
+    // en markerad kolumn, en växling (chips), en överstruken siffra eller en
+    // svarssiffra. Det som är nytt i det aktuella steget animeras in.
+    //   stage = { text, show: ["a","b","op","rule"], labels: true, hl: kolumn,
+    //             chips: { kolumn: "text" }, struck: [kolumner], res: [kolumner],
+    //             blocks: { from: "tiotal", to: "ental" } }
+    // Kolumn 0 = ental, 1 = tiotal, 2 = hundratal, 3 = tusental.
+    function foldLesson(card, idx) {
+      var st = { show: {}, chips: {}, struck: {}, res: {}, labels: false, hl: null, blocks: null, text: "" };
+      var own = { show: {}, chips: {}, struck: {}, res: {}, hl: false, blocks: false };
+      for (var k = 0; k <= idx; k++) {
+        var s = card.stages[k];
+        var cur = k === idx;
+        (s.show || []).forEach(function (r) { st.show[r] = true; if (cur) own.show[r] = true; });
+        if (s.labels !== undefined) st.labels = s.labels;
+        Object.keys(s.chips || {}).forEach(function (c) { st.chips[c] = s.chips[c]; if (cur) own.chips[c] = true; });
+        (s.struck || []).forEach(function (c) { st.struck[c] = true; if (cur) own.struck[c] = true; });
+        (s.res || []).forEach(function (c) { st.res[c] = true; if (cur) own.res[c] = true; });
+        if (cur) {
+          st.hl = s.hl === undefined ? null : s.hl;
+          st.blocks = s.blocks || null;
+          st.text = s.text || "";
+          own.blocks = !!st.blocks;
+        }
+      }
+      return { st: st, own: own };
+    }
+
+    function buildLessonCalc(card, f) {
+      var col = card.col;
+      var isAdd = col.op === "+";
+      var res = isAdd ? col.a + col.b : col.a - col.b;
+      var sa = String(col.a), sb = String(col.b), sr = String(res);
+      var n = Math.max(sa.length, sb.length, sr.length);
+      var st = f.st, own = f.own;
+      var names = ["E", "T", "H", "Tu"];
+      function digitAt(s, i) { return s.charAt(s.length - 1 - i); }
+      function hlc(k) { return st.hl === k ? " cc-hlcol" : ""; }
+
+      var labelRow = '<span class="cc-cell cc-op"></span>';
+      var chipRow = '<span class="cc-cell cc-op"></span>';
+      var rowA = '<span class="cc-cell cc-op"></span>';
+      var rowB = '<span class="cc-cell cc-op' + (st.show.op ? "" : " cc-hide") + (own.show.op ? " cc-new-in" : "") + '">' + esc(col.op) + "</span>";
+      var rowR = '<span class="cc-cell cc-op"></span>';
+      for (var k = n - 1; k >= 0; k--) {
+        var d = "--d:" + (k * 0.08).toFixed(2) + "s";
+        labelRow += '<span class="cc-cell cc-label' + (st.labels ? "" : " cc-hide") + '">' + (names[k] || "") + "</span>";
+        chipRow += '<span class="cc-cell cc-carry">' +
+          (st.chips[k] !== undefined
+            ? '<span class="cc-chip cc-chip-' + (isAdd ? "carry" : "borrow") + (own.chips[k] ? " cc-new-in" : "") + '">' + esc(st.chips[k]) + "</span>"
+            : "") + "</span>";
+        rowA += '<span class="cc-cell cc-digit' + (st.show.a ? "" : " cc-hide") + (own.show.a ? " cc-new-in" : "") +
+          (st.struck[k] ? " cc-struck" + (own.struck[k] ? " cc-new-strike" : "") : "") + hlc(k) + '" style="' + d + '">' + digitAt(sa, k) + "</span>";
+        rowB += '<span class="cc-cell cc-digit' + (st.show.b ? "" : " cc-hide") + (own.show.b ? " cc-new-in" : "") + hlc(k) + '" style="' + d + '">' + digitAt(sb, k) + "</span>";
+        rowR += '<span class="cc-cell cc-digit cc-res' + (st.res[k] ? "" : " cc-hide") + (own.res[k] ? " cc-new-pop" : "") + hlc(k) + '">' + digitAt(sr, k) + "</span>";
+      }
+      return (
+        '<div class="column-calc is-static lesson-calc" style="--n:' + n + '" role="img" aria-label="' + esc(col.a + " " + col.op + " " + col.b) + '">' +
+        labelRow + chipRow + rowA + rowB +
+        '<span class="cc-rule' + (st.show.rule ? "" : " cc-hide") + (own.show.rule ? " cc-new-rule" : "") + '"></span>' +
+        rowR + "</div>"
+      );
+    }
+
+    // Visar att 1 tiotal = 10 ental (eller 1 hundratal = 10 tiotal) med klossar.
+    function buildBlocks(b, animate) {
+      function shape(unit) { return unit === "hundratal" ? "lb-h" : (unit === "tiotal" ? "lb-t" : "lb-o"); }
+      var smalls = "";
+      for (var i = 0; i < 10; i++) {
+        smalls += '<span class="lb-sq ' + shape(b.to) + (animate ? " lb-pop" : "") + '" style="--d:' + (0.3 + i * 0.07).toFixed(2) + 's"></span>';
+      }
+      return (
+        '<div class="lesson-blocks">' +
+        '<div class="lb-group"><span class="lb-sq lb-big ' + shape(b.from) + (animate ? " lb-pop" : "") + '"></span><span class="lb-label">1 ' + esc(b.from) + "</span></div>" +
+        '<span class="lb-eq">=</span>' +
+        '<div class="lb-group"><div class="lb-smalls lb-s-' + shape(b.to) + '">' + smalls + '</div><span class="lb-label">10 ' + esc(b.to) + "</span></div>" +
+        "</div>"
+      );
+    }
+
     function persist() {
       if (inRetry) return;
       try {
@@ -207,6 +295,8 @@
       inRetry = false;
       revealedKeys = {};
       animatedKeys = {};
+      lessonStage = {};
+      lessonAnimate = {};
       state = { currentIndex: 0, name: config.studentName || DEFAULT_STUDENT_NAME, date: todayStr() };
       homeState = state;
       showCard(0, { instant: true });
@@ -369,6 +459,45 @@
             flipBody
           );
         }
+        case "lesson": {
+          var lkey = card.key;
+          var lUnderstood = getPath(state, lkey) === "ok";
+          var lLast = card.stages.length - 1;
+          var lIdx = lessonStage[lkey];
+          if (lIdx === undefined) lIdx = lUnderstood ? lLast : 0;
+          lIdx = Math.max(0, Math.min(lLast, lIdx));
+          // Animera det som är nytt när man går framåt (och första gången kortet visas).
+          var lAnim = lessonAnimate[lkey] === true || (lessonAnimate[lkey] === undefined && lIdx === 0 && !lUnderstood);
+          lessonAnimate[lkey] = false;
+          var lf = foldLesson(card, lIdx);
+          if (!lAnim) lf.own = { show: {}, chips: {}, struck: {}, res: {}, hl: false, blocks: false };
+          var lDots = "";
+          for (var di = 0; di <= lLast; di++) {
+            lDots += '<span class="lesson-dot' + (di === lIdx ? " is-current" : (di < lIdx ? " is-done" : "")) + '"></span>';
+          }
+          var lActions;
+          if (lIdx < lLast) {
+            lActions = '<button type="button" class="btn" data-lesson-next="' + esc(lkey) + '">Nästa steg →</button>';
+          } else if (!lUnderstood) {
+            lActions = '<button type="button" class="btn" data-lesson-ok="' + esc(lkey) + '">Jag förstår, gå vidare ✓</button>';
+          } else {
+            lActions = '<p class="lesson-done">✓ Klart! Svep eller tryck på pilen för att gå vidare.</p>';
+          }
+          var lSecondary = lIdx > 0
+            ? '<div class="lesson-secondary">' +
+              '<button type="button" class="link-btn" data-lesson-prev="' + esc(lkey) + '">← Förra steget</button>' +
+              '<button type="button" class="link-btn" data-lesson-restart="' + esc(lkey) + '">↻ Från början</button></div>'
+            : "";
+          return (
+            '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
+            '<p class="question-text">' + esc(card.title || "") + "</p>" +
+            buildLessonCalc(card, lf) +
+            (lf.st.blocks ? buildBlocks(lf.st.blocks, lAnim) : "") +
+            '<p class="lesson-text">' + esc(lf.st.text) + "</p>" +
+            '<div class="lesson-dots" aria-hidden="true">' + lDots + "</div>" +
+            '<div class="lesson-actions">' + lActions + lSecondary + "</div>"
+          );
+        }
         case "long":
           return (
             '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
@@ -469,6 +598,33 @@
         });
       });
 
+      if (card.type === "lesson") {
+        var lessonKey = card.key;
+        function curStage() {
+          var v = lessonStage[lessonKey];
+          if (v !== undefined) return v;
+          return getPath(state, lessonKey) === "ok" ? card.stages.length - 1 : 0;
+        }
+        function goStage(i, animate) {
+          lessonStage[lessonKey] = i;
+          lessonAnimate[lessonKey] = animate;
+          showCard(index, { instant: true });
+        }
+        var bind = function (attr, fn) {
+          var el = cardEl.querySelector("[" + attr + "]");
+          if (el) el.addEventListener("click", fn);
+        };
+        bind("data-lesson-next", function () { goStage(curStage() + 1, true); });
+        bind("data-lesson-prev", function () { goStage(Math.max(0, curStage() - 1), false); });
+        bind("data-lesson-restart", function () { goStage(0, true); });
+        bind("data-lesson-ok", function () {
+          setPath(state, lessonKey, "ok");
+          persist();
+          lessonAnimate[lessonKey] = false;
+          showCard(index, { instant: true });
+        });
+      }
+
       cardEl.querySelectorAll("[data-replay-key]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           delete animatedKeys[btn.getAttribute("data-replay-key")];
@@ -541,7 +697,7 @@
     // Frågor med facit (flerval, sortera) ska visa rätt/fel innan man går
     // vidare, annars missar man rättningen helt.
     function requiresAnswer(card) {
-      return card && (card.type === "choice" || card.type === "classify" || card.type === "flip");
+      return card && (card.type === "choice" || card.type === "classify" || card.type === "flip" || card.type === "lesson");
     }
     function isAnswered(card) {
       return !!getPath(state, card.key);
@@ -552,7 +708,8 @@
     // det räcker att jämföra svaret mot facit.
     function computeWrongCards(cardsArr, st) {
       return cardsArr.filter(function (c) {
-        return requiresAnswer(c) && getPath(st, c.key) !== c.correct;
+        // Lektioner har inget rätt/fel, de ska bara förstås, och kan inte bli "fel".
+        return c.type !== "lesson" && requiresAnswer(c) && getPath(st, c.key) !== c.correct;
       });
     }
 
@@ -631,7 +788,7 @@
         progressLabel.textContent = "Steg " + (index + 1) + " av " + TOTAL;
         prevBtn.disabled = index === 0;
         nextBtn.disabled = index === TOTAL - 1 || blocked;
-        navHint.textContent = index === TOTAL - 1 ? "Klart!" : (blocked ? "Välj ett svar för att gå vidare" : "Svep för att byta fråga");
+        navHint.textContent = index === TOTAL - 1 ? "Klart!" : (blocked ? (CARDS[index].type === "lesson" ? "Gå igenom stegen för att gå vidare" : "Välj ett svar för att gå vidare") : "Svep för att byta fråga");
       }
 
       if (animTimer) { clearTimeout(animTimer); animTimer = null; }

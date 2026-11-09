@@ -55,6 +55,7 @@ men hämtar och cachar varje läxsida i farten första gången den öppnas.
 | `long`       | Längre skrivuppgift med meningsräknare          |
 | `checklist`  | Bockningslista att gå igenom innan man är klar  |
 | `flip`       | Instuderingsfråga – tryck fram facit, skatta sig själv (kunde/öva mer). Med `column: { a, b, op: "+" eller "−" }` ritas facit upp som en animerad uppställning |
+| `lesson`     | Guidad genomgång steg för steg av en uppställning (`col: { a, b, op }`, `stages: [...]`). Varje steg kan visa rader, markera en kolumn, visa växling, klossar och svarssiffror, och man måste trycka "Jag förstår" för att komma vidare. Se Matteläxa 1 |
 | `summary`    | Sista kortet – visar/skriver ut alla svar       |
 
 Se `laxor/den-mystiska-on.html` för ett fullständigt exempel på varje typ.
