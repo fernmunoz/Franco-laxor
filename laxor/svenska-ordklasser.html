@@ -23,7 +23,7 @@
 (function () {
   "use strict";
 
-  // Svenskaboken, kapitel 1 till 3 (substantiv, adjektiv, verb), sidorna 5 till 24, i
+  // Svenskaboken, kapitel 1 till 3 (substantiv, adjektiv, verb), sidorna 5 till 32, i
   // sidordning. Teorin är sammanfattad med egna ord och övningstexterna är egna, i samma
   // stil som bokens. Bokens bilduppgifter finns som "titta i boken"-kort.
 
@@ -319,16 +319,96 @@
       a: "Exempel: springer, klipper, läser, sitter, vinkar, cyklar, simmar, flyger, leker.\nPresens (nutid) slutar oftast på -r: springer, läser, cyklar." }
   ]);
 
+  page(25, "Meningar med verb", [
+    { t: "flip", write: true, rows: 6,
+      q: "Välj fem av verben du har skrivit och bilda en mening med varje. Stryk under verben. (Exempel: Hanna springer snabbt.)",
+      a: "Exempel:\nMin kompis cyklar till skolan.\nVi spelar fotboll på rasten.\nHunden hoppar över staketet.\nPappa läser tidningen.\nJag tittar på film.\nVerben säger vad någon gör." }
+  ]);
+
+  page(26, "Hitta verben", [
+    { t: "pick",
+      q: "Tryck på alla verb. Det finns tio. (I boken är läser redan inringat, tryck på det också.)",
+      words: ["läser", "cyklade", "hoppat", "spela", "böcker", "buss", "skratta", "halkat", "gröna", "titta", "pratade", "stark", "åka", "ilsken", "lila", "blundar"],
+      ans: ["läser", "cyklade", "hoppat", "spela", "skratta", "halkat", "titta", "pratade", "åka", "blundar"],
+      explain: "Verben: läser, cyklade, hoppat, spela, skratta, halkat, titta, pratade, åka, blundar.\nSubstantiv: böcker, buss. Adjektiv: gröna, stark, ilsken, lila." }
+  ]);
+
+  function vf(inf, pres, pret, sup) {
+    return "Infinitiv (att ...): " + inf + "\nPresens (nu ...): " + pres + "\nPreteritum (igår ...): " + pret + "\nSupinum (har/hade ...): " + sup;
+  }
+  page(27, "Verbformer", [
+    { t: "read", html:
+      "<p>Ett verb finns i fyra former:</p>" +
+      "<p><b>Infinitiv</b> (att ...): <i>att läsa</i><br>" +
+      "<b>Presens</b> (nu ...): <i>nu läser</i><br>" +
+      "<b>Preteritum</b> (igår ...): <i>igår läste</i><br>" +
+      "<b>Supinum</b> (har/hade ...): <i>har läst</i></p>" +
+      "<p>Infinitiv kallas <b>uppslagsform</b>, för det är den formen man letar efter i en ordlista.</p>" },
+    { t: "flip", q: "Skriv verbet i alla fyra former: läsa", a: vf("läsa", "läser", "läste", "läst") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: cyklade", a: vf("cykla", "cyklar", "cyklade", "cyklat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: hoppat", a: vf("hoppa", "hoppar", "hoppade", "hoppat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: spela", a: vf("spela", "spelar", "spelade", "spelat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: skratta", a: vf("skratta", "skrattar", "skrattade", "skrattat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: halkat", a: vf("halka", "halkar", "halkade", "halkat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: titta", a: vf("titta", "tittar", "tittade", "tittat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: pratade", a: vf("prata", "pratar", "pratade", "pratat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: åka", a: vf("åka", "åker", "åkte", "åkt") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: blundar", a: vf("blunda", "blundar", "blundade", "blundat") }
+  ]);
+
+  page(28, "Meningar i olika verbformer", [
+    { t: "flip", write: true, rows: 3, q: "Välj ett verb ur tabellen och skriv en mening med verbet i infinitiv. Stryk under verbet.", a: "Exempel med spela: Jag gillar att spela fotboll." },
+    { t: "flip", write: true, rows: 3, q: "Skriv en mening med verbet i presens (nu ...).", a: "Exempel med spela: Nu spelar vi fotboll." },
+    { t: "flip", write: true, rows: 3, q: "Skriv en mening med verbet i preteritum (igår ...).", a: "Exempel med spela: Igår spelade vi fotboll." },
+    { t: "flip", write: true, rows: 3, q: "Skriv en mening med verbet i supinum (har/hade ...).", a: "Exempel med spela: Vi har spelat fotboll hela dagen." }
+  ]);
+
+  page(29, "Uppslagsform", [
+    { t: "read", html:
+      "<p>Vill du veta vad ett verb betyder slår du upp det i en ordlista, i en bok eller på nätet. Letar du efter ordets betydelse på ett annat språk använder man ett <b>lexikon</b>.</p>" +
+      "<p>Du måste leta efter ordets <b>uppslagsform</b>, alltså grundformen. För verb är uppslagsformen <b>infinitiv</b>.</p>" +
+      "<p>Exempel: <i>skriva, skriver, skrev, skrivit</i>. Vill du veta vad <i>profiterar</i> betyder letar du efter <i>profitera</i>.</p>" +
+      "<p>I ordlistan står oftast uppslagsformen, hur preteritum bildas (<i>profitera -de</i> betyder <i>profiterade</i>) och en förklaring.</p>" }
+  ]);
+
+  page(30, "Förklara orden", [
+    { t: "flip", q: "Förklara verbet 'gestaltar'. Leta först fram uppslagsformen.", a: "Uppslagsform: gestalta\nBetyder: ge form åt något, framställa, t.ex. när en skådespelare gestaltar en roll." },
+    { t: "flip", q: "Förklara verbet 'kungjorde'. Leta först fram uppslagsformen.", a: "Uppslagsform: kungöra\nBetyder: göra något känt offentligt, tillkännage." },
+    { t: "flip", q: "Förklara verbet 'abonnerat'. Leta först fram uppslagsformen.", a: "Uppslagsform: abonnera\nBetyder: få en tidning eller tjänst regelbundet mot betalning, prenumerera." },
+    { t: "flip", q: "Förklara verbet 'mockade'. Leta först fram uppslagsformen.", a: "Uppslagsform: mocka\nBetyder: rensa bort gödsel ur ett stall eller en hästbox.\n(Kolla ordlistan, ordet kan ha fler betydelser.)" },
+    { t: "flip", q: "Förklara verbet 'svepte'. Leta först fram uppslagsformen.", a: "Uppslagsform: svepa\nBetyder: röra sig snabbt och mjukt (svepa fram), eller linda in något i tyg." },
+    { t: "flip", q: "Förklara verbet 'importerar'. Leta först fram uppslagsformen.", a: "Uppslagsform: importera\nBetyder: föra in varor från ett annat land. (Motsatsen är exportera.)" },
+    { t: "flip", q: "Förklara verbet 'öste'. Leta först fram uppslagsformen.", a: "Uppslagsform: ösa\nBetyder: ta upp en vätska med en skopa eller slev. 'Det öser ner' betyder att det regnar mycket." }
+  ]);
+
+  page(31, "Repetition: verb", [
+    { t: "flip", write: true, rows: 3, q: "Skriv tre ord som tillhör ordklassen verb.", a: "Exempel: springa, sova, äta, rita, tänka.\nTesta: går det att säga 'att' framför ordet, eller 'nu'?" },
+    { t: "flip", q: "Skriv verbet i alla fyra former: prata", a: vf("prata", "pratar", "pratade", "pratat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: körde", a: vf("köra", "kör", "körde", "kört") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: ritat", a: vf("rita", "ritar", "ritade", "ritat") },
+    { t: "flip", q: "Skriv verbet i alla fyra former: hittar", a: vf("hitta", "hittar", "hittade", "hittat") }
+  ]);
+
+  page(32, "Verbformer och ordlista", [
+    { t: "flip", write: true, rows: 3, q: "Välj ett verb och skriv en mening i infinitiv. Stryk under verbet.", a: "Exempel med titta: Jag vill titta på film." },
+    { t: "flip", write: true, rows: 3, q: "Skriv en mening med samma verb i presens.", a: "Exempel med titta: Nu tittar jag på film." },
+    { t: "flip", write: true, rows: 3, q: "Skriv en mening med samma verb i preteritum.", a: "Exempel med titta: Igår tittade jag på film." },
+    { t: "flip", write: true, rows: 3, q: "Skriv en mening med samma verb i supinum.", a: "Exempel med titta: Jag har tittat på film hela kvällen." },
+    { t: "flip", q: "Vad betyder 'konkurrerade'? Använd en ordlista.", a: "Uppslagsform: konkurrera\nBetyder: tävla mot andra och försöka bli bäst." },
+    { t: "flip", q: "Vad betyder 'svabbat'? Använd en ordlista.", a: "Uppslagsform: svabba\nBetyder: skura eller torka golv, ursprungligen däcket på ett fartyg, med en svabb." },
+    { t: "flip", q: "Vad betyder 'centrerar'? Använd en ordlista.", a: "Uppslagsform: centrera\nBetyder: placera i mitten (centrum), t.ex. en text mitt på sidan." }
+  ]);
+
   // ---------- sammanfattning ----------
 
   cards.push({
     type: "summary",
     eyebrow: "Klart! 🎉",
     title: "Bra jobbat!",
-    lead: "Du har gått igenom kapitel 1 till 3. Här är det du kan öva mer på.",
+    lead: "Du har gått igenom kapitel 1 till 3 (s.5-32). Här är det du kan öva mer på.",
     buildSummary: function (state) {
       var lines = [];
-      lines.push("SVENSKA: SUBSTANTIV, ADJEKTIV OCH VERB (s.5-24)");
+      lines.push("SVENSKA: SUBSTANTIV, ADJEKTIV OCH VERB (s.5-32)");
       lines.push("Namn: " + (state.name || "–") + "    Datum: " + (state.date || "–"));
       var lastPg = null;
       META.forEach(function (m) {
@@ -352,7 +432,7 @@
   SwipeHomework.init({
     mount: "#app",
     title: "Substantiv, adjektiv, verb",
-    subtitle: "Svenska · s.5-24",
+    subtitle: "Svenska · s.5-32",
     storageKey: "franco-svenska-ordklasser-v1",
     backHref: "../index.html",
     cards: cards
