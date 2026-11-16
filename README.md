@@ -54,7 +54,8 @@ men hämtar och cachar varje läxsida i farten första gången den öppnas.
 | `classify`   | Sortera ett ord under en av flera taggar        |
 | `long`       | Längre skrivuppgift med meningsräknare          |
 | `checklist`  | Bockningslista att gå igenom innan man är klar  |
-| `flip`       | Instuderingsfråga – tryck fram facit, skatta sig själv (kunde/öva mer). Med `column: { a, b, op: "+" eller "−" }` ritas facit upp som en animerad uppställning |
+| `flip`       | Instuderingsfråga – tryck fram facit, skatta sig själv (kunde/öva mer). Med `write: true` får kortet en skrivruta för eget svar (sparas, rättas inte). Med `column: { a, b, op: "+" eller "−" }` ritas facit upp som en animerad uppställning |
+| `pick`       | "Tryck på alla ord som är ..." (`words`, `answers` som index, `correct: "ratt"`). Man väljer brickor och trycker Rätta, och ser rätt, fel och missade |
 | `lesson`     | Guidad genomgång steg för steg av en uppställning (`col: { a, b, op }`, `stages: [...]`). Varje steg kan visa rader, markera en kolumn, visa växling, klossar och svarssiffror, och man måste trycka "Jag förstår" för att komma vidare. Se Matteläxa 1 |
 | `summary`    | Sista kortet – visar/skriver ut alla svar       |
 

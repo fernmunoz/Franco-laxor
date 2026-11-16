@@ -237,6 +237,18 @@ body {
   .lb-pop, .lesson-text { animation: none !important; }
 }
 
+/* ---------- ordbrickor ("tryck på alla ord som är ...") ---------- */
+.pick-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.2rem 0; }
+.pick-chip {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif; font-size: 1.05rem;
+  padding: 0.5rem 0.75rem; border-radius: 10px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--paper); color: var(--ink);
+}
+.pick-chip.is-selected { border-color: var(--navy); background: var(--navy-soft); color: var(--navy); font-weight: 700; }
+.pick-chip.is-correct { border-color: var(--sea); background: var(--sea-soft); color: var(--sea); font-weight: 700; }
+.pick-chip.is-wrong { border-color: var(--coral); background: var(--coral-soft); color: var(--coral); text-decoration: line-through; }
+.pick-chip.is-missed { border: 1.5px dashed var(--sea); color: var(--sea); }
+
 /* ---------- lektion: uppställning steg för steg ---------- */
 .lesson-calc .cc-label { height: 1.3rem; line-height: 1.3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 0.7rem; font-weight: 700; color: var(--ink-soft); }
 .cc-hide { visibility: hidden; }

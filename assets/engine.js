@@ -456,7 +456,48 @@
             '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
             (card.page ? '<p class="flip-page">' + esc(card.page) + "</p>" : "") +
             '<p class="question-text">' + esc(card.question || "") + "</p>" +
+            // write: true ger en skrivruta så man kan skriva sitt eget svar (t.ex. en mening)
+            // innan man jämför med facit. Texten sparas, men rättas inte.
+            (card.write
+              ? '<textarea class="field-textarea" data-field-key="texts.' + esc(String(card.key).replace(/\./g, "_")) + '" rows="' + (card.rows || 4) + '" placeholder="' + esc(card.placeholder || "Skriv ditt svar här...") + '"></textarea>'
+              : "") +
             flipBody
+          );
+        }
+        case "pick": {
+          // "Tryck på alla ord som är ..." Orden ligger som brickor. Man väljer, trycker
+          // Rätta, och ser vilka som var rätt, fel eller missade.
+          var pkKey = card.key;
+          var pkSafe = String(pkKey).replace(/\./g, "_");
+          var pkRes = getPath(state, pkKey); // "ratt" | "fel" | undefined
+          var pkSel = getPath(state, "picks." + pkSafe) || [];
+          var pkAns = card.answers || [];
+          var pkChips = (card.words || [])
+            .map(function (w, i) {
+              var isSel = pkSel.indexOf(i) !== -1;
+              var isAns = pkAns.indexOf(i) !== -1;
+              var cls = "pick-chip";
+              if (pkRes) cls += isSel && isAns ? " is-correct" : (isSel ? " is-wrong" : (isAns ? " is-missed" : ""));
+              else if (isSel) cls += " is-selected";
+              return '<button type="button" class="' + cls + '" data-pick-i="' + i + '">' + esc(w) + "</button>";
+            })
+            .join("");
+          var pkMsg = "";
+          if (pkRes) {
+            var found = pkSel.filter(function (i) { return pkAns.indexOf(i) !== -1; }).length;
+            var extra = pkSel.length - found;
+            pkMsg = pkRes === "ratt"
+              ? "Rätt! Du hittade alla " + pkAns.length + "."
+              : "Du hittade " + found + " av " + pkAns.length + (extra > 0 ? " och valde " + extra + " som inte stämmer" : "") + ". De rätta är markerade med grönt.";
+          }
+          return (
+            '<div class="eyebrow">' + esc(card.eyebrow || "") + "</div>" +
+            '<p class="question-text">' + esc(card.prompt || "") + "</p>" +
+            '<div class="pick-grid">' + pkChips + "</div>" +
+            (pkRes
+              ? '<p class="check-feedback">' + esc(pkMsg) + "</p>" + (card.explain ? '<p class="flip-answer">' + esc(card.explain) + "</p>" : "")
+              : '<p class="counter-text" data-pick-count>Valda: ' + pkSel.length + '</p><p class="check-feedback" data-pick-feedback></p>' +
+                '<button type="button" class="btn" data-pick-check>Rätta</button>')
           );
         }
         case "lesson": {
@@ -598,6 +639,41 @@
         });
       });
 
+      if (card.type === "pick") {
+        var pickKey = card.key;
+        var pickPath = "picks." + String(pickKey).replace(/\./g, "_");
+        cardEl.querySelectorAll("[data-pick-i]").forEach(function (chip) {
+          chip.addEventListener("click", function () {
+            if (getPath(state, pickKey)) return; // redan rättad
+            var i = parseInt(chip.getAttribute("data-pick-i"), 10);
+            var cur = (getPath(state, pickPath) || []).slice();
+            var at = cur.indexOf(i);
+            if (at === -1) cur.push(i); else cur.splice(at, 1);
+            setPath(state, pickPath, cur);
+            persist();
+            chip.classList.toggle("is-selected", at === -1);
+            var cnt = cardEl.querySelector("[data-pick-count]");
+            if (cnt) cnt.textContent = "Valda: " + cur.length;
+          });
+        });
+        var checkBtn = cardEl.querySelector("[data-pick-check]");
+        if (checkBtn) {
+          checkBtn.addEventListener("click", function () {
+            var sel = getPath(state, pickPath) || [];
+            if (!sel.length) {
+              var fb = cardEl.querySelector("[data-pick-feedback]");
+              if (fb) fb.textContent = "Tryck på orden du tror är rätt först.";
+              return;
+            }
+            var ans = card.answers || [];
+            var ok = sel.length === ans.length && ans.every(function (a) { return sel.indexOf(a) !== -1; });
+            setPath(state, pickKey, ok ? "ratt" : "fel");
+            persist();
+            showCard(index, { instant: true });
+          });
+        }
+      }
+
       if (card.type === "lesson") {
         var lessonKey = card.key;
         function curStage() {
@@ -697,7 +773,7 @@
     // Frågor med facit (flerval, sortera) ska visa rätt/fel innan man går
     // vidare, annars missar man rättningen helt.
     function requiresAnswer(card) {
-      return card && (card.type === "choice" || card.type === "classify" || card.type === "flip" || card.type === "lesson");
+      return card && (card.type === "choice" || card.type === "classify" || card.type === "flip" || card.type === "lesson" || card.type === "pick");
     }
     function isAnswered(card) {
       return !!getPath(state, card.key);
@@ -718,6 +794,9 @@
       if (card.type === "classify") {
         var tn = card.tagNames || {};
         return (card.subject || "") + " — du svarade " + (tn[val] || val) + ", rätt är " + (tn[card.correct] || card.correct);
+      }
+      if (card.type === "pick") {
+        return (card.prompt || "") + (card.eyebrow ? " (" + card.eyebrow.split(" · ")[0] + ")" : "");
       }
       if (card.type === "flip") {
         return (card.question || "") + (card.page ? " (" + card.page + ")" : "");
@@ -788,7 +867,7 @@
         progressLabel.textContent = "Steg " + (index + 1) + " av " + TOTAL;
         prevBtn.disabled = index === 0;
         nextBtn.disabled = index === TOTAL - 1 || blocked;
-        navHint.textContent = index === TOTAL - 1 ? "Klart!" : (blocked ? (CARDS[index].type === "lesson" ? "Gå igenom stegen för att gå vidare" : "Välj ett svar för att gå vidare") : "Svep för att byta fråga");
+        navHint.textContent = index === TOTAL - 1 ? "Klart!" : (blocked ? (CARDS[index].type === "lesson" ? "Gå igenom stegen för att gå vidare" : (CARDS[index].type === "pick" ? "Välj orden och tryck Rätta" : "Välj ett svar för att gå vidare")) : "Svep för att byta fråga");
       }
 
       if (animTimer) { clearTimeout(animTimer); animTimer = null; }
